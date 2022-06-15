@@ -31,22 +31,26 @@ augmentations = {'train':
         T.ToTensor(),
     ])
 }
-
+# Hyperparameters
 data_path = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
 BATCH_SIZE = 32
 NUM_EPOCHS = 200
-datamodule = MIMICCXRDataModule(data_path, transforms=augmentations, only_images=False, batch_size=BATCH_SIZE,
-                                limit_num_samples=None)
-train_loader = datamodule.train_dataloader()
-val_loader = datamodule.val_dataloader()
+LIMIT_NUM_SAMPLES = None
+
+mimic_datamodule = MIMICCXRDataModule(data_path, transforms=augmentations, only_images=False, batch_size=BATCH_SIZE,
+                                limit_num_samples=LIMIT_NUM_SAMPLES)
+train_loader = mimic_datamodule.train_dataloader()
+val_loader = mimic_datamodule.val_dataloader()
 
 pretrained_clip_path = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
 
-print("Len training dataset : ", len(datamodule.train_dataset), "Batch Size : ", BATCH_SIZE, "NUM_EPOCHS : ",NUM_EPOCHS )
-print("Total training steps : ", len(datamodule.train_dataset)//BATCH_SIZE*NUM_EPOCHS)
-model = FlamingoClipPalm(pretrained_clip_path = pretrained_clip_path)
+print("Len training dataset : ", len(mimic_datamodule.train_dataset), "Batch Size : ", BATCH_SIZE, "NUM_EPOCHS : ",NUM_EPOCHS )
+print("Total training steps : ", len(mimic_datamodule.train_dataset)//BATCH_SIZE*NUM_EPOCHS)
+
+model = FlamingoClipPalm(pretrained_clip_path = pretrained_clip_path,
+                        total_steps=len(mimic_datamodule.train_dataset)//BATCH_SIZE*NUM_EPOCHS)
 trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                      accelerator="gpu", devices=1)
-trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader, datamodule=datamodule)
+trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
 

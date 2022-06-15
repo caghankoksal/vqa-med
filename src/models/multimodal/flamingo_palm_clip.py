@@ -7,8 +7,10 @@ from .flamingo_palm_original import FlamingoPaLM
 from transformers import get_linear_schedule_with_warmup,get_constant_schedule_with_warmup
 
 class FlamingoClipPalm(pl.LightningModule):
-    def __init__(self, pretrained_clip_path):
+    def __init__(self, pretrained_clip_path, total_steps):
         super().__init__()
+
+        self.total_steps = total_steps
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model, _  = clip.load("ViT-B/32",device=device)
         model.load_state_dict(torch.load(pretrained_clip_path, map_location=device)['state_dict'])
@@ -72,13 +74,12 @@ class FlamingoClipPalm(pl.LightningModule):
         ratio = 500/500.000 = 0.001
 
         # Number of totals steps : num_epochs * num_batches   
+
         """
 
-        self
         scheduler = get_constant_schedule_with_warmup(
                     optimizer,
                     num_warmup_steps=200,
-                    num_training_steps=self.total_steps,
                 )
         scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1}
         return [optimizer], [scheduler]
