@@ -156,7 +156,7 @@ class MIMICCXRDataModule(pl.LightningDataModule):
 
     def return_valid_samples(self, mimic_cxr_path):
         valid_samples = []
-        for folder in tqdm([folder for folder in os.listdir(mimic_cxr_path) if not folder.startswith(".")]):
+        for folder in tqdm([folder for folder in os.listdir(mimic_cxr_path) if not folder.startswith(".") and  not folder.endswith('.html')]):
             for patient in [folder for folder in os.listdir(os.path.join(mimic_cxr_path, folder)) if not folder.endswith('.html') and not folder.startswith(".")]:
                 
                 for record in [folder for folder in os.listdir(os.path.join(mimic_cxr_path, folder, patient)) if not folder.endswith('html') and not folder.endswith('.txt') and not folder.startswith('.') and folder != '/']:
