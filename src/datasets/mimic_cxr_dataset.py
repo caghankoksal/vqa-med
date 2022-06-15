@@ -120,7 +120,7 @@ class MIMICCXR(Dataset):
 
 class MIMICCXRDataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str, batch_size: int = 32, transforms=None, only_first_image=True,
-                 only_images=False, return_pil=False, limit_num_samples=None):
+                 only_images=False, return_pil=False, limit_num_samples=None, num_data_workers=4):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
@@ -129,6 +129,7 @@ class MIMICCXRDataModule(pl.LightningDataModule):
         self.only_first_image = only_first_image
         self.only_images = only_images
         self.return_pil = return_pil
+        self.num_data_workers = num_data_workers
 
         self.setup()
 
@@ -144,13 +145,13 @@ class MIMICCXRDataModule(pl.LightningDataModule):
         self.test_dataset = MIMICCXR(self.test_split, self.data_points)
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_data_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.validation_dataset, batch_size=self.batch_size)
+        return DataLoader(self.validation_dataset, batch_size=self.batch_size, num_workers=self.num_data_workers)
 
     def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.batch_size)
+        return DataLoader(self.test_dataset, batch_size=self.batch_size,num_workers=self.num_data_workers)
 
 
     def return_valid_samples(self, mimic_cxr_path):
