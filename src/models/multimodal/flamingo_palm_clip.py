@@ -4,6 +4,7 @@ from .clip_model import VisionTransformer
 from torch import nn as nn
 import pytorch_lightning as pl
 from .flamingo_palm_original import FlamingoPaLM
+from transformers import get_linear_schedule_with_warmup,get_constant_schedule_with_warmup
 
 class FlamingoClipPalm(pl.LightningModule):
     def __init__(self, pretrained_clip_path):
@@ -16,11 +17,11 @@ class FlamingoClipPalm(pl.LightningModule):
         
         self.flamingo_palm = FlamingoPaLM(
                                         num_tokens = 31092,          # number of tokens
-                                        dim = 512,                  # dimensions
+                                        dim = 512,                   # dimensions
                                         depth = 12,                  # depth
                                         heads = 8,                   # attention heads
                                         dim_head = 64,               # dimension per attention head
-                                        img_encoder = self.vit_clip,           # plugin your image encoder (this can be optional if you pass in the image embeddings separately, but probably want to train end to end given the perceiver resampler)
+                                        img_encoder = self.vit_clip, # plugin your image encoder (this can be optional if you pass in the image embeddings separately, but probably want to train end to end given the perceiver resampler)
                                         media_token_id = 3,          # the token id representing the [media] or [image]
                                         cross_attn_every = 3,        # how often to cross attend
                                         perceiver_num_latents = 64,  # perceiver number of latents, should be smaller than the sequence length of the image tokens
@@ -59,6 +60,25 @@ class FlamingoClipPalm(pl.LightningModule):
         self.log("val_loss", loss)
         return loss
 
+        
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
-        return optimizer
+        optimizer = torch.optim.AdamW(self.parameters(), lr=1e-4,weight_decay=0.01)
+        """
+        
+        learning rate is increased linearly from 0 to 10−4 up over the first 5000
+        steps then held constant for the duration of training (no improvements were observed from decaying
+        the learning rate). Unless specified otherwise we train our models for 500.000 step
+
+        ratio = 500/500.000 = 0.001
+
+        # Number of totals steps : num_epochs * num_batches   
+        """
+
+        self
+        scheduler = get_constant_schedule_with_warmup(
+                    optimizer,
+                    num_warmup_steps=5000,
+                    num_training_steps=self.total_steps,
+                )
+        scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1}
+        return [optimizer], [scheduler]
