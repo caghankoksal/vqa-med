@@ -77,7 +77,7 @@ class FlamingoClipPalm(pl.LightningModule):
         self
         scheduler = get_constant_schedule_with_warmup(
                     optimizer,
-                    num_warmup_steps=5000,
+                    num_warmup_steps=200,
                     num_training_steps=self.total_steps,
                 )
         scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1}
