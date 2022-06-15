@@ -2,6 +2,9 @@
 
 Visual Question Answering (VQA) task for medical data. VQA models answer questions for Xray, MR, CT images. 
 
+## Link to Pretrained Tokenizer and Models
+https://drive.google.com/drive/folders/1WYwDez52QNDBsYQPPh5tsSDyV1hs8eJs?usp=sharing
+
 ## Getting started
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
