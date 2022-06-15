@@ -120,7 +120,7 @@ class MIMICCXR(Dataset):
 
 class MIMICCXRDataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str, batch_size: int = 32, transforms=None, only_first_image=True,
-                 only_images=False, return_pil=False, limit_num_samples=128):
+                 only_images=False, return_pil=False, limit_num_samples=None):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
