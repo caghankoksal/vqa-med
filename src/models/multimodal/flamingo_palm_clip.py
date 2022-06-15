@@ -24,7 +24,7 @@ class FlamingoClipPalm(pl.LightningModule):
                                         heads = 8,                   # attention heads
                                         dim_head = 64,               # dimension per attention head
                                         img_encoder = self.vit_clip, # plugin your image encoder (this can be optional if you pass in the image embeddings separately, but probably want to train end to end given the perceiver resampler)
-                                        media_token_id = 3,          # the token id representing the [media] or [image]
+                                        media_token_id = 31090,          # the token id representing the [media] or [image]
                                         cross_attn_every = 3,        # how often to cross attend
                                         perceiver_num_latents = 64,  # perceiver number of latents, should be smaller than the sequence length of the image tokens
                                         perceiver_depth = 2          # perceiver resampler depth
