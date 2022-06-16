@@ -33,12 +33,13 @@ class FlamingoModule(pl.LightningModule):
             vit = ViT(image_size = 224, patch_size = 32, num_classes = 1000, dim = dim,
                       depth = 6, heads = 16, mlp_dim = 2048, dropout = 0.1, emb_dropout = 0.1
                       )
+            print("Vit is initialized")
 
             image_encoder = Extractor(vit, return_embeddings_only = True)
-            img_encoder_outdim = dim
+            self.img_encoder_outdim = dim
         elif image_encoder == "densenet":
             image_encoder = xrv.models.DenseNet(weights="densenet121-res224-mimic_nb")
-            img_encoder_outdim = None
+            self.img_encoder_outdim = None
 
         
 

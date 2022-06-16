@@ -260,13 +260,14 @@ class FlamingoModel(nn.Module):
 
 
         if language_model == 'gpt2' and pretrained_gpt2_path is not None:
-            self.load_gpt2_weights(pretrained_gpt2_path)
-            
+                self.load_gpt2_weights(pretrained_gpt2_path)
+
 
     def load_gpt2_weights(self, path):
         """
         Load weights from a GPT2 model.
         """
+        print("GPT 2 Weights are loading...")
         old_keys = []
         new_keys = []
         model_dict = self.layers.state_dict()
