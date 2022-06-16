@@ -4,7 +4,7 @@ from fastai.medical.imaging import get_dicom_files
 from sklearn import model_selection
 import torchvision.transforms as T
 import os
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM,PreTrainedTokenizerFast
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM,PreTrainedTokenizerFast, GPT2Tokenizer
 import numpy as np
 from PIL import Image
 import pytorch_lightning as pl 
@@ -23,11 +23,17 @@ class MIMICCXR(Dataset):
         self.token_max_len = token_max_len
         self.return_pil = return_pil
         self.transforms = transforms
+        self.tokenizer_type ='gpt2'
         
         if tokenizer == "sciFive":
             self.tokenizer = AutoTokenizer.from_pretrained("razent/SciFive-large-Pubmed_PMC-MedNLI")
         elif tokenizer == "scibert":
             self.tokenizer = AutoTokenizer.from_pretrained("allenai/scibert_scivocab_uncased")
+        elif tokenizer == "gpt2":
+            
+            self.tokenizer = AutoTokenizer.from_pretrained("gpt2")
+            self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+
         elif tokenizer == "scratch":
             # TODO : Implement a scratch tokenizer
             pass
@@ -37,7 +43,7 @@ class MIMICCXR(Dataset):
         if tokenizer_add_special_tokens:
             special_tokens_dict = {'additional_special_tokens': ['<image>', '<EOC>']}
             # Set the beginning of sentence token to <BOS>
-            self.tokenizer.bos_token = '<BOS>'
+            #self.tokenizer.bos_token = '<BOS>'
             num_added_toks = self.tokenizer.add_special_tokens(special_tokens_dict)
 
 
@@ -101,14 +107,22 @@ class MIMICCXR(Dataset):
             report = " ".join(lines)
 
             # Put image at the beginning of the explanation
-            report = '<BOS> ' + '<image> ' + 'Output: ' + report + ' <EOC>'
+            report = self.tokenizer.bos_token + ' ' + '<image> ' + 'Output: ' + report + ' <EOC>'
 
             encoding = self.tokenizer.encode_plus(report, padding='max_length', truncation=True, max_length=self.token_max_len, return_tensors="pt")
-            input_ids = encoding['input_ids']
-            token_type_ids = encoding['token_type_ids']
+
+            if self.tokenizer_type == 'gpt2':
+                
+                input_ids = encoding['input_ids']
+                token_type_ids = encoding['attention_mask']
+            else:
+                input_ids = encoding['input_ids']
+                token_type_ids = encoding['token_type_ids']
+
             
             #At the beginnin At the end guess EOC token
             eoc_token_id = self.tokenizer.all_special_ids[self.tokenizer.all_special_tokens.index('<EOC>')]
+            #@TODO : EOC TOKEN IS ADDED AFTER PAD TOKENS, THIS IS SHOULD BE FIXED
             targets = torch.cat( ( input_ids[:,1:], torch.tensor([eoc_token_id]).unsqueeze(1) ), dim=1)
 
             return {"image":images, "text": report, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
@@ -120,7 +134,8 @@ class MIMICCXR(Dataset):
 
 class MIMICCXRDataModule(pl.LightningDataModule):
     def __init__(self, data_dir: str, batch_size: int = 32, transforms=None, only_first_image=True,
-                 only_images=False, return_pil=False, limit_num_samples=None, num_data_workers=4):
+                 only_images=False, return_pil=False, limit_num_samples=None, num_data_workers=4,
+                 tokenizer='scibert'):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
@@ -130,6 +145,7 @@ class MIMICCXRDataModule(pl.LightningDataModule):
         self.only_images = only_images
         self.return_pil = return_pil
         self.num_data_workers = num_data_workers
+        self.tokenizer = tokenizer
 
         self.setup()
 
@@ -140,9 +156,9 @@ class MIMICCXRDataModule(pl.LightningDataModule):
             
         self.train_split, val = model_selection.train_test_split(torch.arange(len(self.data_points)), test_size=0.2)
         self.val_split, self.test_split = model_selection.train_test_split(val, test_size=0.5)
-        self.train_dataset = MIMICCXR(self.train_split, self.data_points, transforms=self.transforms["train"],)
-        self.validation_dataset = MIMICCXR(self.val_split, self.data_points, transforms=self.transforms["val"])
-        self.test_dataset = MIMICCXR(self.test_split, self.data_points)
+        self.train_dataset = MIMICCXR(self.train_split, self.data_points, transforms=self.transforms["train"], tokenizer=self.tokenizer)
+        self.validation_dataset = MIMICCXR(self.val_split, self.data_points, transforms=self.transforms["val"], tokenizer=self.tokenizer)
+        self.test_dataset = MIMICCXR(self.test_split, self.data_points, tokenizer=self.tokenizer)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_data_workers)
