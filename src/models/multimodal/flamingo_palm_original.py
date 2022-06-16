@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 from einops import rearrange
 from torch import einsum, nn
+from ..text.gpt2_layers import TransformerBlockGPT2
 
 from .flamingo_pytorch_original import GatedCrossAttentionBlock, PerceiverResampler
 # Owner: Lucidrains -> https://github.com/lucidrains/flamingo-pytorch  #I will hack and update necessary parts for my use case
@@ -230,7 +231,7 @@ class FlamingoPaLM(nn.Module):
         self.layers = nn.ModuleList([])
         for ind in range(depth):
             self.layers.append(nn.ModuleList([
-                Residual(ParallelTransformerBlock(dim=dim, dim_head=dim_head, heads=heads, ff_mult=ff_mult)),
+                Residual(TransformerBlockGPT2(d_model=dim, n_head=depth, dropout=0.1)),
                 GatedCrossAttentionBlock(dim=dim, dim_head=dim_head, heads=heads) if not (ind % cross_attn_every) else None
             ]))
 
