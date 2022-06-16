@@ -210,7 +210,8 @@ class FlamingoPaLM(nn.Module):
         cross_attn_every=3,
         img_encoder=None,
         perceiver_num_latents=64,
-        perceiver_depth=2
+        perceiver_depth=2,
+        only_attend_immediate_media=True
     ):
         super().__init__()
 
@@ -231,8 +232,8 @@ class FlamingoPaLM(nn.Module):
         self.layers = nn.ModuleList([])
         for ind in range(depth):
             self.layers.append(nn.ModuleList([
-                Residual(TransformerBlockGPT2(d_model=dim, n_head=depth, dropout=0.1)),
-                GatedCrossAttentionBlock(dim=dim, dim_head=dim_head, heads=heads) if not (ind % cross_attn_every) else None
+                Residual(ParallelTransformerBlock(dim=dim, dim_head=dim_head, heads=heads, ff_mult=ff_mult)),
+                GatedCrossAttentionBlock(dim=dim, dim_head=dim_head, heads=heads, only_attend_immediate_media=only_attend_immediate_media) if not (ind % cross_attn_every) else None
             ]))
 
         self.to_logits = nn.Sequential(
