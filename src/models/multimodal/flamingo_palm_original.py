@@ -3,7 +3,7 @@ import torch.nn.functional as F
 from einops import rearrange
 from torch import einsum, nn
 
-from flamingo_pytorch.flamingo_pytorch import GatedCrossAttentionBlock, PerceiverResampler
+from .flamingo_pytorch_original import GatedCrossAttentionBlock, PerceiverResampler
 # Owner: Lucidrains -> https://github.com/lucidrains/flamingo-pytorch  #I will hack and update necessary parts for my use case
 # helper functions
 
