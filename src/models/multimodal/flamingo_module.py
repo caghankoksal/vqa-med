@@ -4,47 +4,62 @@ from .clip_model import VisionTransformer
 from torch import nn as nn
 import pytorch_lightning as pl
 from .flamingo_palm_original import FlamingoPaLM
+from .flamingo_model import FlamingoModel
 from transformers import get_linear_schedule_with_warmup,get_constant_schedule_with_warmup
 from vit_pytorch.vit import ViT
 from vit_pytorch.extractor import Extractor
+import torchxrayvision as xrv
 
 
-class FlamingoClipPalm(pl.LightningModule):
+class FlamingoModule(pl.LightningModule):
     def __init__(self, pretrained_clip_path, total_steps, num_tokens = 31092, dim=512,
                  depth=12, heads=8, dim_head=64, media_token_id=3190, cross_attn_every=3,
-                 perceiver_num_latents = 64, perceiver_depth = 2):
+                 perceiver_num_latents = 64, perceiver_depth = 2, image_encoder ="clip", 
+                 language_model='gpt2'):
 
         super().__init__()
         self.total_steps = total_steps
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        if pretrained_clip_path != None:
+        if image_encoder == "clip" and pretrained_clip_path != None:
             print("Pretrained clip is being loaded")
             model, _  = clip.load("ViT-B/32",device=device)
             model.load_state_dict(torch.load(pretrained_clip_path, map_location=device)['state_dict'])
-            self.vit  = VisionTransformer(input_resolution=224, patch_size=32, width=768, layers=12, heads=8, output_dim=512)
-            self.vit.load_state_dict(model.visual.state_dict())
-        else:
+            self.image_encoder  = VisionTransformer(input_resolution=224, patch_size=32, width=768, layers=12, heads=8, output_dim=512)
+            self.image_encoder.load_state_dict(model.visual.state_dict())
+            self.img_encoder_outdim = 512
+
+        elif image_encoder == "clip" and pretrained_clip_path == None:
             print("Vit is started from scratch")
             vit = ViT(image_size = 224, patch_size = 32, num_classes = 1000, dim = dim,
                       depth = 6, heads = 16, mlp_dim = 2048, dropout = 0.1, emb_dropout = 0.1
                       )
 
-            self.vit = Extractor(vit, return_embeddings_only = True)
+            self.image_encoder = Extractor(vit, return_embeddings_only = True)
+            self.img_encoder_outdim = dim
+        elif image_encoder == "densenet":
+            self.image_encoder = xrv.models.DenseNet(weights="densenet121-res224-mimic_nb")
+            self.img_encoder_outdim = None
 
-        print("FlamingoPalm is being initialized")
-        self.flamingo_palm = FlamingoPaLM(
+        
+
+        # It should be better if single Flamingo model is created and used with both GPT2 and Palm
+        
+        print("Flamingo is being initialized with ", language_model, " as language model")
+        self.flamingo_palm = FlamingoModel(
                                         num_tokens = num_tokens,                        # number of tokens
                                         dim = dim,                                      # dimensions
                                         depth = depth,                                  # depth
                                         heads = heads,                                  # attention heads
                                         dim_head = dim_head,                            # dimension per attention head
-                                        img_encoder = self.vit,                    # plugin your image encoder (this can be optional if you pass in the image embeddings separately, but probably want to train end to end given the perceiver resampler)
+                                        img_encoder = self.image_encoder,               # plugin your image encoder (this can be optional if you pass in the image embeddings separately, but probably want to train end to end given the perceiver resampler)
                                         media_token_id = media_token_id,                # the token id representing the [media] or [image]
                                         cross_attn_every = cross_attn_every,            # how often to cross attend
                                         perceiver_num_latents = perceiver_num_latents,  # perceiver number of latents, should be smaller than the sequence length of the image tokens
-                                        perceiver_depth = perceiver_depth               # perceiver resampler depth
+                                        perceiver_depth = perceiver_depth,              # perceiver resampler depth
+                                        language_model=language_model,                  # language model    (gpt2 or palm)
+                                        img_encoder_outdim = self.img_encoder_outdim,
                                     )
-        print("Flamingo is initialized")
+      
 
     def forward(self, x):
         # in lightning, forward defines the prediction/inference actions
