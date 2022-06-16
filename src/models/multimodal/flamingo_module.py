@@ -15,7 +15,7 @@ class FlamingoModule(pl.LightningModule):
     def __init__(self, pretrained_clip_path, total_steps, num_tokens = 31092, dim=512,
                  depth=12, heads=8, dim_head=64, media_token_id=3190, cross_attn_every=3,
                  perceiver_num_latents = 64, perceiver_depth = 2, image_encoder ="clip", 
-                 language_model='gpt2'):
+                 language_model='gpt2', pretrained_gpt2_path=None ):
 
         super().__init__()
         self.total_steps = total_steps
@@ -24,8 +24,8 @@ class FlamingoModule(pl.LightningModule):
             print("Pretrained clip is being loaded")
             model, _  = clip.load("ViT-B/32",device=device)
             model.load_state_dict(torch.load(pretrained_clip_path, map_location=device)['state_dict'])
-            self.image_encoder  = VisionTransformer(input_resolution=224, patch_size=32, width=768, layers=12, heads=8, output_dim=512)
-            self.image_encoder.load_state_dict(model.visual.state_dict())
+            image_encoder  = VisionTransformer(input_resolution=224, patch_size=32, width=768, layers=12, heads=8, output_dim=512)
+            image_encoder.load_state_dict(model.visual.state_dict())
             self.img_encoder_outdim = 512
 
         elif image_encoder == "clip" and pretrained_clip_path == None:
@@ -34,11 +34,11 @@ class FlamingoModule(pl.LightningModule):
                       depth = 6, heads = 16, mlp_dim = 2048, dropout = 0.1, emb_dropout = 0.1
                       )
 
-            self.image_encoder = Extractor(vit, return_embeddings_only = True)
-            self.img_encoder_outdim = dim
+            image_encoder = Extractor(vit, return_embeddings_only = True)
+            img_encoder_outdim = dim
         elif image_encoder == "densenet":
-            self.image_encoder = xrv.models.DenseNet(weights="densenet121-res224-mimic_nb")
-            self.img_encoder_outdim = None
+            image_encoder = xrv.models.DenseNet(weights="densenet121-res224-mimic_nb")
+            img_encoder_outdim = None
 
         
 
@@ -51,13 +51,14 @@ class FlamingoModule(pl.LightningModule):
                                         depth = depth,                                  # depth
                                         heads = heads,                                  # attention heads
                                         dim_head = dim_head,                            # dimension per attention head
-                                        img_encoder = self.image_encoder,               # plugin your image encoder (this can be optional if you pass in the image embeddings separately, but probably want to train end to end given the perceiver resampler)
+                                        img_encoder = image_encoder,               # plugin your image encoder (this can be optional if you pass in the image embeddings separately, but probably want to train end to end given the perceiver resampler)
                                         media_token_id = media_token_id,                # the token id representing the [media] or [image]
                                         cross_attn_every = cross_attn_every,            # how often to cross attend
                                         perceiver_num_latents = perceiver_num_latents,  # perceiver number of latents, should be smaller than the sequence length of the image tokens
                                         perceiver_depth = perceiver_depth,              # perceiver resampler depth
                                         language_model=language_model,                  # language model    (gpt2 or palm)
                                         img_encoder_outdim = self.img_encoder_outdim,
+                                        pretrained_gpt2_path=pretrained_gpt2_path
                                     )
       
 

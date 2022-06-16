@@ -213,7 +213,8 @@ class FlamingoModel(nn.Module):
         perceiver_depth=2,
         only_attend_immediate_media=True,
         language_model = 'palm',
-        img_encoder_outdim=512
+        img_encoder_outdim=512,
+        pretrained_gpt2_path=None
     ):
 
         super().__init__()
@@ -247,6 +248,7 @@ class FlamingoModel(nn.Module):
                 GatedCrossAttentionBlock(dim=dim, dim_head=dim_head, heads=heads, only_attend_immediate_media=only_attend_immediate_media) if not (ind % cross_attn_every) else None
             ]))
 
+    
         self.to_logits = nn.Sequential(
             LayerNorm(dim),
             nn.Linear(dim, num_tokens, bias=False)
@@ -255,6 +257,40 @@ class FlamingoModel(nn.Module):
         # they used embedding weight tied projection out to logits, not common, but works
         self.to_logits[-1].weight = self.token_emb.weight
         nn.init.normal_(self.token_emb.weight, std=0.02)
+
+
+        if language_model == 'gpt2' and pretrained_gpt2_path is not None:
+            self.load_gpt2_weights(pretrained_gpt2_path)
+            
+
+    def load_gpt2_weights(self, path):
+        """
+        Load weights from a GPT2 model.
+        """
+        old_keys = []
+        new_keys = []
+        model_dict = self.layers.state_dict()
+        state_dict = torch.load(path) #pretrained weights
+        for key in state_dict.keys(): 
+            if key.startswith('h'):
+                cur_key  = key.replace('h.','')
+                cur_key = cur_key.replace('mlp','feedforward')
+                index_point = cur_key.index('.')
+                cur_key = cur_key[:index_point+1] + '0.fn.' + cur_key[index_point+1:]
+
+                new_keys.append(cur_key)
+                old_keys.append(key)
+
+        for old_key, new_key in zip(old_keys, new_keys): 
+            state_dict[new_key]=state_dict.pop(old_key)
+
+        pretrained_dict = {k: v for k, v in state_dict.items() if k in model_dict}
+        model_dict.update(pretrained_dict)
+        self.layers.load_state_dict(model_dict)
+
+        print("Loaded GPT2 weights", "num_weights loaed : ",len(pretrained_dict.keys()))
+
+
     
     def forward(
         self,
