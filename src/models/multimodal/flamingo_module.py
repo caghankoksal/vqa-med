@@ -34,6 +34,7 @@ class FlamingoModule(pl.LightningModule):
                 "Language Model : ", language_model, " \n",
                 "Pretrained GPT2 Path : ", pretrained_gpt2_path, " \n"
             )
+        self.save_hyperparameters()
         self.total_steps = total_steps
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if image_encoder == "clip" and pretrained_clip_path != None:
@@ -93,11 +94,13 @@ class FlamingoModule(pl.LightningModule):
         input_tokens = batch['input_ids']
         targets = batch["targets"]
         flamingo_logits = self.flamingo_palm(input_tokens.squeeze(1), images.unsqueeze(1))
-        loss = nn.CrossEntropyLoss()(torch.permute(flamingo_logits, (0,2,1)), targets.squeeze(1))
-        
+        train_loss = nn.CrossEntropyLoss()(torch.permute(flamingo_logits, (0,2,1)), targets.squeeze(1))
         # Logging to TensorBoard by default
-        self.log("train_loss", loss)
-        return loss
+        #self.log("train_loss", train_loss)
+        comet_logs = {'train_loss': train_loss}
+        self.log("train_loss",train_loss)
+        self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
+        return {'loss': train_loss, 'log': comet_logs}
 
     def validation_step(self, batch, batch_idx):
         # val defined the training loop.
@@ -106,10 +109,23 @@ class FlamingoModule(pl.LightningModule):
         input_tokens = batch['input_ids']
         targets = batch["targets"]
         flamingo_logits = self.flamingo_palm(input_tokens.squeeze(1), images.unsqueeze(1))
-        loss = nn.CrossEntropyLoss()(torch.permute(flamingo_logits, (0,2,1)), targets.squeeze(1))
+        val_loss = nn.CrossEntropyLoss()(torch.permute(flamingo_logits, (0,2,1)), targets.squeeze(1))
         # Logging to TensorBoard by default
-        self.log("val_loss", loss)
-        return loss
+        self.log("val_loss", val_loss)
+        comet_logs = {'val_loss': val_loss}
+        self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
+
+        return {'val_loss': val_loss, "log": comet_logs}
+
+
+    def validation_end(self, outputs):
+        # OPTIONAL
+        avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
+        comet_logs = {'avg_val_loss': avg_loss}
+        self.log("avg_val_loss", avg_loss)
+        self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
+        return {'avg_val_loss': avg_loss, 'log': comet_logs}
+
 
         
     def configure_optimizers(self):
