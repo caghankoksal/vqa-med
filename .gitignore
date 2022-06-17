@@ -160,3 +160,7 @@ cython_debug/
 #.idea/
 
 .DS_Store
+notebooks/pll_logs
+notebooks/flamingo-gpt2/
+notebooks/comet-default
+notebooks/lightning_logs_flamingo-gpt2
