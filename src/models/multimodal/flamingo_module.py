@@ -98,7 +98,7 @@ class FlamingoModule(pl.LightningModule):
         # Logging to TensorBoard by default
         #self.log("train_loss", train_loss)
         comet_logs = {'train_loss': train_loss}
-        self.log("train_loss",train_loss)
+        self.log("train_loss",train_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
         return {'loss': train_loss, 'log': comet_logs}
 
@@ -111,7 +111,7 @@ class FlamingoModule(pl.LightningModule):
         flamingo_logits = self.flamingo_palm(input_tokens.squeeze(1), images.unsqueeze(1))
         val_loss = nn.CrossEntropyLoss()(torch.permute(flamingo_logits, (0,2,1)), targets.squeeze(1))
         # Logging to TensorBoard by default
-        self.log("val_loss", val_loss)
+        self.log("val_loss", val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         comet_logs = {'val_loss': val_loss}
         self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
 
@@ -122,7 +122,7 @@ class FlamingoModule(pl.LightningModule):
         # OPTIONAL
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         comet_logs = {'avg_val_loss': avg_loss}
-        self.log("avg_val_loss", avg_loss)
+        self.log("avg_val_loss", avg_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
         return {'avg_val_loss': avg_loss, 'log': comet_logs}
 
