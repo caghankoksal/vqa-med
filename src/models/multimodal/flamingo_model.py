@@ -218,6 +218,7 @@ class FlamingoModel(nn.Module):
     ):
 
         super().__init__()
+        self.num_tokens = num_tokens
 
         self.token_emb = nn.Embedding(num_tokens, dim)
         self.media_token_id = media_token_id # you need to reserve a special token id for media
@@ -254,13 +255,15 @@ class FlamingoModel(nn.Module):
             nn.Linear(dim, num_tokens, bias=False)
         )
 
+        if language_model == 'gpt2' and pretrained_gpt2_path is not None:
+                self.load_gpt2_weights(pretrained_gpt2_path)
+
         # they used embedding weight tied projection out to logits, not common, but works
         self.to_logits[-1].weight = self.token_emb.weight
         nn.init.normal_(self.token_emb.weight, std=0.02)
 
 
-        if language_model == 'gpt2' and pretrained_gpt2_path is not None:
-                self.load_gpt2_weights(pretrained_gpt2_path)
+        
 
 
     def load_gpt2_weights(self, path):
@@ -289,7 +292,9 @@ class FlamingoModel(nn.Module):
         model_dict.update(pretrained_dict)
         self.layers.load_state_dict(model_dict)
 
-        print("Loaded GPT2 weights", "num_weights loaed : ",len(pretrained_dict.keys()))
+        # Load Embedding Weights
+        self.token_emb.weight.data[:self.num_tokens -3] = state_dict['wte.weight']
+        print("Loaded GPT2 weights and Embeddings", "num_weights loaed : ",len(pretrained_dict.keys()))
 
 
     
@@ -317,7 +322,6 @@ class FlamingoModel(nn.Module):
 
         if flamingo_mode:
             media_locations = text == self.media_token_id
-
         text_tokens = self.token_emb(text)
 
         assert not (exists(images) and exists(image_embeds))

@@ -18,6 +18,22 @@ class FlamingoModule(pl.LightningModule):
                  language_model='gpt2', pretrained_gpt2_path=None ):
 
         super().__init__()
+        print("FlamingoModule will be initialized with parameters : ",
+                "Pretrained Clip Path : ", pretrained_clip_path, " \n",
+                "Total Steps : ", total_steps, " \n",
+                "Num Tokens : ", num_tokens, " \n",
+                "Dim : ", dim, " \n",
+                "Depth : ", depth, " \n",
+                "Heads : ", heads, " \n",
+                "Dim Head : ", dim_head, " \n",
+                "Media Token Id : ", media_token_id, " \n",
+                "Cross Attn Every : ", cross_attn_every, " \n",
+                "Perceiver Num Latents : ", perceiver_num_latents, " \n",
+                "Perceiver Depth : ", perceiver_depth, " \n",
+                "Image Encoder : ", image_encoder, " \n",
+                "Language Model : ", language_model, " \n",
+                "Pretrained GPT2 Path : ", pretrained_gpt2_path, " \n"
+            )
         self.total_steps = total_steps
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if image_encoder == "clip" and pretrained_clip_path != None:
