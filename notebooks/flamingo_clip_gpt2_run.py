@@ -40,18 +40,37 @@ augmentations = {'train':
     ])
 }
 
-
+# Hyperparameters
 NUM_DATA_WORKERS  = 0
 ONLY_IMAGES = False
-# Hyperparameters
-DATA_PATH = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
 BATCH_SIZE = 32
 NUM_EPOCHS = 200
 LIMIT_NUM_SAMPLES = None
 
-# DATAMODULE
-mimic_datamodule = MIMICCXRDataModule(DATA_PATH, transforms=augmentations, only_images=False, batch_size=BATCH_SIZE,
-                                limit_num_samples=LIMIT_NUM_SAMPLES, num_data_workers=NUM_DATA_WORKERS, tokenizer="gpt2")
+if os.getcwd().startswith('/home/mlmi-matthias'):
+    ACCELERATOR = "gpu"
+    DEVICES = [0]
+    PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
+    PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
+    MIMIC_CXR_DCM_PATH = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
+    MIMIC_CXR_JPG_PATH = "/home/mlmi-matthias/physionet.org/files/mimic-cxr-jpg/2.0.0/files/"
+
+elif os.getcwd().startswith('/Users/caghankoksal'):
+    PRETRAINED_CLIP_PATH = '/Users/caghankoksal/Desktop/development/PubMedCLIP_ViT32.pth'
+    PRETRAINED_GPT2_PATH = "/Users/caghankoksal/Desktop/development/TransformerPlay/gpt2-pytorch_model.bin"
+    ACCELERATOR = "cpu"
+    DEVICES = 0
+    MIMIC_CXR_DCM_PATH = '/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/'
+    MIMIC_CXR_JPG_PATH = '/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/'
+
+IMAGE_TYPE = "jpg"
+
+mimic_datamodule = MIMICCXRDataModule(MIMIC_CXR_DCM_PATH, MIMIC_CXR_JPG_PATH, 
+                                      transforms=augmentations, only_images=False, batch_size=BATCH_SIZE,
+                                      limit_num_samples=LIMIT_NUM_SAMPLES, num_data_workers=NUM_DATA_WORKERS,
+                                      tokenizer="gpt2",image_type=IMAGE_TYPE)
+
+
 train_loader = mimic_datamodule.train_dataloader()
 val_loader = mimic_datamodule.val_dataloader()
 
@@ -73,22 +92,6 @@ MEDIA_TOKEN_ID = mimic_datamodule.train_dataset.tokenizer.all_special_ids[mimic_
 PERCEIVER_NUM_LATENTS = 64
 PERCEIVER_DEPTH = 2
 IMAGE_ENCODER = "clip"
-
-
-
-
-
-if os.getcwd().startswith('/home/mlmi-matthias'):
-    ACCELERATOR = "gpu"
-    DEVICES = [0]
-    PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
-    PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
-elif os.getcwd().startswith('/Users/caghankoksal'):
-    PRETRAINED_CLIP_PATH = '/Users/caghankoksal/Desktop/development/PubMedCLIP_ViT32.pth'
-    PRETRAINED_GPT2_PATH = "/Users/caghankoksal/Desktop/development/TransformerPlay/gpt2-pytorch_model.bin"
-    ACCELERATOR = "gpu"
-    DEVICES = 0
-    
 
 
 # COMET EXPERIMENT LOGGER
@@ -123,8 +126,7 @@ model = FlamingoModule(pretrained_clip_path = PRETRAINED_CLIP_PATH,
                       pretrained_gpt2_path=PRETRAINED_GPT2_PATH
                         )
 
-
-
+# LOGGER
 comet_logger = CometLogger(
     api_key= COMET_API_KEY,
     project_name=PROJECT_KEY)
