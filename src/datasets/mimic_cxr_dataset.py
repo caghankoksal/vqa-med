@@ -173,21 +173,24 @@ class MIMICCXRDataModule(pl.LightningDataModule):
     def return_valid_samples(self, mimic_cxr_path):
         valid_samples = []
         for folder in tqdm([folder for folder in os.listdir(mimic_cxr_path) if not folder.startswith(".") and not folder.endswith('.html')]):
-            for patient in [folder for folder in os.listdir(os.path.join(mimic_cxr_path, folder)) if not folder.endswith('.html') and not folder.startswith(".")]:
-                
-                for record in [folder for folder in os.listdir(os.path.join(mimic_cxr_path, folder, patient)) if not folder.endswith('html') and not folder.endswith('.txt') and not folder.startswith('.') and folder != '/']:
-                    path_of_record_folder = os.path.join(mimic_cxr_path, folder, patient, record)
-                    # Each folder has its corresponding txt file
-                    txt_path = path_of_record_folder + '.txt'
-                    # Some folders are empty and they are useless
-                    if len(os.listdir(path_of_record_folder)) == 1 or len(os.listdir(path_of_record_folder)) == 0:
-                        #print("No images in this folder",path_of_record_folder)
-                        continue
-                    else:
-                        valid_samples.append(
-                            {'folder_path': path_of_record_folder,
-                            'txt_path': txt_path}
-                        )
+            if folder!="p10":
+                continue
+            else:
+                for patient in [folder for folder in os.listdir(os.path.join(mimic_cxr_path, folder)) if not folder.endswith('.html') and not folder.startswith(".")]:
+                    
+                    for record in [folder for folder in os.listdir(os.path.join(mimic_cxr_path, folder, patient)) if not folder.endswith('html') and not folder.endswith('.txt') and not folder.startswith('.') and folder != '/']:
+                        path_of_record_folder = os.path.join(mimic_cxr_path, folder, patient, record)
+                        # Each folder has its corresponding txt file
+                        txt_path = path_of_record_folder + '.txt'
+                        # Some folders are empty and they are useless
+                        if len(os.listdir(path_of_record_folder)) == 1 or len(os.listdir(path_of_record_folder)) == 0:
+                            #print("No images in this folder",path_of_record_folder)
+                            continue
+                        else:
+                            valid_samples.append(
+                                {'folder_path': path_of_record_folder,
+                                'txt_path': txt_path}
+                            )
         return valid_samples
                 
                     
