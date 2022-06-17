@@ -82,7 +82,7 @@ if os.getcwd().startswith('/home/mlmi-matthias'):
     ACCELERATOR = "gpu"
     DEVICES = [0]
     PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
-    PRETRAINED_GPT2_PATH = "/Users/caghankoksal/Desktop/development/TransformerPlay/gpt2-pytorch_model.bin"
+    PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
 elif os.getcwd().startswith('/Users/caghankoksal'):
     PRETRAINED_CLIP_PATH = '/Users/caghankoksal/Desktop/development/PubMedCLIP_ViT32.pth'
     PRETRAINED_GPT2_PATH = "/Users/caghankoksal/Desktop/development/TransformerPlay/gpt2-pytorch_model.bin"
@@ -133,7 +133,7 @@ lr_monitor = LearningRateMonitor(logging_interval='step')
 tb_logger = pl_loggers.TensorBoardLogger(save_dir="pll_logs/")
 
 
-trainer = pl.Trainer(max_epochs=NUM_EPOCHS,deterministic=True,
+trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                      accelerator=ACCELERATOR, devices=DEVICES,
                      logger=[tb_logger,comet_logger],
                      callbacks=[lr_monitor])
