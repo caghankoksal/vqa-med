@@ -97,7 +97,7 @@ class MIMICCXR(Dataset):
             if self.only_first_image==True:
                 images_path = images_path[:1]
             for image in images_path:
-                img = Image.open(os.path.join(folder_path, image))
+                img = Image.open(os.path.join(folder_path, image)).convert("RGB")
                 if self.transforms != None:
                     img_2d_scaled_process = self.transforms(img)
                 else:

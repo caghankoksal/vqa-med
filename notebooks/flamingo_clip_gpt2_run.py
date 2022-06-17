@@ -64,11 +64,12 @@ elif os.getcwd().startswith('/Users/caghankoksal'):
     MIMIC_CXR_JPG_PATH = '/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/'
 
 IMAGE_TYPE = "jpg"
+TOKENIZER  = "gpt2"
 
 mimic_datamodule = MIMICCXRDataModule(MIMIC_CXR_DCM_PATH, MIMIC_CXR_JPG_PATH, 
                                       transforms=augmentations, only_images=False, batch_size=BATCH_SIZE,
                                       limit_num_samples=LIMIT_NUM_SAMPLES, num_data_workers=NUM_DATA_WORKERS,
-                                      tokenizer="gpt2",image_type=IMAGE_TYPE)
+                                      tokenizer=TOKENIZER,image_type=IMAGE_TYPE)
 
 
 train_loader = mimic_datamodule.train_dataloader()
