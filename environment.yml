@@ -2,6 +2,7 @@ name: mlmi_caghan
 channels:
   - pytorch
   - defaults
+  - conda-forge
 dependencies:
   - _libgcc_mutex=0.1
   - _openmp_mutex=5.1
