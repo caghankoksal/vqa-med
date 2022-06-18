@@ -94,7 +94,9 @@ class FlamingoModule(pl.LightningModule):
         input_tokens = batch['input_ids']
         targets = batch["targets"]
         flamingo_logits = self.flamingo_palm(input_tokens.squeeze(1), images.unsqueeze(1))
-        train_loss = nn.CrossEntropyLoss()(torch.permute(flamingo_logits, (0,2,1)), targets.squeeze(1))
+        train_loss = nn.CrossEntropyLoss(reduction='none')(torch.permute(flamingo_logits, (0,2,1)), targets.squeeze(1))
+        # Only non pad tokens are considered in the loss
+        train_loss = torch.sum(train_loss*batch["token_type_ids"])/torch.sum(batch["token_type_ids"])
         # Logging to TensorBoard by default
         #self.log("train_loss", train_loss)
         comet_logs = {'train_loss': train_loss}
