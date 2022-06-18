@@ -219,10 +219,10 @@ class FlamingoModel(nn.Module):
 
         super().__init__()
         self.num_tokens = num_tokens
-
+        self.dim = dim
         self.token_emb = nn.Embedding(num_tokens, dim)
         self.media_token_id = media_token_id # you need to reserve a special token id for media
-
+        self.img_encoder_outdim = img_encoder_outdim
         self.img_encoder = img_encoder
         freeze_model_and_make_eval_(self.img_encoder)
 
@@ -235,9 +235,9 @@ class FlamingoModel(nn.Module):
         )
 
         self.img_encoder_outdim_layer  = None
-        if img_encoder_outdim != dim:
+        if self.img_encoder_outdim != self.dim:
             self.img_encoder_outdim = img_encoder_outdim
-            self.img_encoder_outdim_layer = nn.Linear(img_encoder_outdim, dim)
+            self.img_encoder_outdim_layer = nn.Linear(img_encoder_outdim, self.dim)
 
         
 
@@ -317,6 +317,10 @@ class FlamingoModel(nn.Module):
             [unfreeze_all_layers_(cross_attn) for _, cross_attn in self.layers if exists(cross_attn)]
         else:
             unfreeze_all_layers_(self)
+        # This is downsample layer which is not used in Flamingo to reduce the dimensionality of the image embedding
+        # given by the clip
+        if self.img_encoder_outdim != self.dim:
+            unfreeze_all_layers_(self.img_encoder_outdim_layer)
 
         # derive the media token ids (as a boolean tensor), for calculating the masked cross attention
 
