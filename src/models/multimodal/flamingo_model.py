@@ -193,10 +193,10 @@ class ParallelTransformerBlock(nn.Module):
         return self.attn_out(out) + self.ff_out(ff)
 
 
-# transformer
 
 
-class FlamingoPaLM(nn.Module):
+#Generic Flamingo Model for both GPT2 and Flamingo
+class FlamingoModel(nn.Module):
     def __init__(
         self,
         *,
@@ -211,9 +211,14 @@ class FlamingoPaLM(nn.Module):
         img_encoder=None,
         perceiver_num_latents=64,
         perceiver_depth=2,
-        only_attend_immediate_media=True
+        only_attend_immediate_media=True,
+        language_model = 'palm',
+        img_encoder_outdim=512,
+        pretrained_gpt2_path=None
     ):
+
         super().__init__()
+        self.num_tokens = num_tokens
 
         self.token_emb = nn.Embedding(num_tokens, dim)
         self.media_token_id = media_token_id # you need to reserve a special token id for media
@@ -229,21 +234,69 @@ class FlamingoPaLM(nn.Module):
             num_latents=perceiver_num_latents
         )
 
+        self.img_encoder_outdim_layer  = None
+        if img_encoder_outdim != dim:
+            self.img_encoder_outdim = img_encoder_outdim
+            self.img_encoder_outdim_layer = nn.Linear(img_encoder_outdim, dim)
+
+        
+
         self.layers = nn.ModuleList([])
         for ind in range(depth):
             self.layers.append(nn.ModuleList([
-                Residual(ParallelTransformerBlock(dim=dim, dim_head=dim_head, heads=heads, ff_mult=ff_mult)),
+                # According to parameter, palm or gpt2 transformer blocks are used.
+                Residual(ParallelTransformerBlock(dim=dim, dim_head=dim_head, heads=heads, ff_mult=ff_mult) if language_model == 'palm' else TransformerBlockGPT2(d_model=dim, n_head=depth, dropout=0.1)),
                 GatedCrossAttentionBlock(dim=dim, dim_head=dim_head, heads=heads, only_attend_immediate_media=only_attend_immediate_media) if not (ind % cross_attn_every) else None
             ]))
 
+    
         self.to_logits = nn.Sequential(
             LayerNorm(dim),
             nn.Linear(dim, num_tokens, bias=False)
         )
 
+        if language_model == 'gpt2' and pretrained_gpt2_path is not None:
+                self.load_gpt2_weights(pretrained_gpt2_path)
+
         # they used embedding weight tied projection out to logits, not common, but works
         self.to_logits[-1].weight = self.token_emb.weight
         nn.init.normal_(self.token_emb.weight, std=0.02)
+
+
+        
+
+
+    def load_gpt2_weights(self, path):
+        """
+        Load weights from a GPT2 model.
+        """
+        print("GPT 2 Weights are loading...")
+        old_keys = []
+        new_keys = []
+        model_dict = self.layers.state_dict()
+        state_dict = torch.load(path) #pretrained weights
+        for key in state_dict.keys(): 
+            if key.startswith('h'):
+                cur_key  = key.replace('h.','')
+                cur_key = cur_key.replace('mlp','feedforward')
+                index_point = cur_key.index('.')
+                cur_key = cur_key[:index_point+1] + '0.fn.' + cur_key[index_point+1:]
+
+                new_keys.append(cur_key)
+                old_keys.append(key)
+
+        for old_key, new_key in zip(old_keys, new_keys): 
+            state_dict[new_key]=state_dict.pop(old_key)
+
+        pretrained_dict = {k: v for k, v in state_dict.items() if k in model_dict}
+        model_dict.update(pretrained_dict)
+        self.layers.load_state_dict(model_dict)
+
+        # Load Embedding Weights
+        self.token_emb.weight.data[:self.num_tokens -3] = state_dict['wte.weight']
+        print("Loaded GPT2 weights and Embeddings", "num_weights loaed : ",len(pretrained_dict.keys()))
+
+
     
     def forward(
         self,
@@ -269,7 +322,6 @@ class FlamingoPaLM(nn.Module):
 
         if flamingo_mode:
             media_locations = text == self.media_token_id
-
         text_tokens = self.token_emb(text)
 
         assert not (exists(images) and exists(image_embeds))
@@ -284,6 +336,8 @@ class FlamingoPaLM(nn.Module):
 
             with torch.no_grad():
                 image_embeds = self.img_encoder(images)
+            if self.img_encoder_outdim_layer != None:
+                image_embeds = self.img_encoder_outdim_layer(image_embeds)
 
             image_embeds = rearrange(image_embeds, '(b t) ... -> b t ...', b = batch)
 
