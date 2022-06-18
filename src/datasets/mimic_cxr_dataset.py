@@ -138,11 +138,9 @@ class MIMICCXR(Dataset):
                 input_ids = encoding['input_ids']
                 token_type_ids = encoding['token_type_ids']
 
-            
-            #At the beginnin At the end guess EOC token
             eoc_token_id = self.tokenizer.all_special_ids[self.tokenizer.all_special_tokens.index('<EOC>')]
-            #@TODO : EOC TOKEN IS ADDED AFTER PAD TOKENS, THIS IS SHOULD BE FIXED
-            targets = torch.cat( ( input_ids[:,1:], torch.tensor([eoc_token_id]).unsqueeze(1) ), dim=1)
+            pad_token_id = self.tokenizer.pad_token_id
+            targets = torch.cat( ( input_ids[:,1:], torch.tensor([pad_token_id]).unsqueeze(1) ), dim=1)
 
             return {"image":images, "text": report, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
         else:
