@@ -170,8 +170,9 @@ class QuickGELU(nn.Module):
 
 
 class ResidualAttentionBlock(nn.Module):
-    def __init__(self, d_model: int, n_head: int, attn_mask: torch.Tensor = None):
+    def __init__(self, d_model: int, n_head: int, attn_mask: torch.Tensor = None, return_att=False):
         super().__init__()
+        self.return_att = return_att
 
         self.attn = nn.MultiheadAttention(d_model, n_head)
         self.ln_1 = LayerNorm(d_model)
@@ -183,13 +184,16 @@ class ResidualAttentionBlock(nn.Module):
         self.ln_2 = LayerNorm(d_model)
         self.attn_mask = attn_mask
 
-    def attention(self, x: torch.Tensor):
+    def attention(self, x: torch.Tensor, need_weights = False):
         self.attn_mask = self.attn_mask.to(dtype=x.dtype, device=x.device) if self.attn_mask is not None else None
-        return self.attn(x, x, x, need_weights=False, attn_mask=self.attn_mask)[0]
+        return self.attn(x, x, x, need_weights=need_weights, attn_mask=self.attn_mask)
 
-    def forward(self, x: torch.Tensor):
-        x = x + self.attention(self.ln_1(x))
+    def forward(self, x: torch.Tensor, return_attn: bool = False):
+        attn, attn_output_weights  = self.attention(self.ln_1(x), need_weights=return_attn)
+        x = x + attn
         x = x + self.mlp(self.ln_2(x))
+        if return_attn:
+            return x, attn_output_weights
         return x
 
 
@@ -198,10 +202,21 @@ class Transformer(nn.Module):
         super().__init__()
         self.width = width
         self.layers = layers
-        self.resblocks = nn.Sequential(*[ResidualAttentionBlock(width, heads, attn_mask) for _ in range(layers)])
+        self.resblocks = nn.ModuleList([ResidualAttentionBlock(width, heads, attn_mask) for _ in range(layers)])
 
-    def forward(self, x: torch.Tensor):
-        return self.resblocks(x)
+    def forward(self, x: torch.Tensor, return_attn: bool = False):
+        attns = []
+        for layer in self.resblocks:
+            if return_attn:
+                x, attn = layer(x, return_attn = return_attn)
+                attns.append(attn)
+            else:
+                x = layer(x)
+
+        if return_attn:
+            return x, attns
+        else:
+            return x
 
 
 class VisionTransformer(nn.Module):
@@ -221,7 +236,7 @@ class VisionTransformer(nn.Module):
         self.ln_post = LayerNorm(width)
         self.proj = nn.Parameter(scale * torch.randn(width, output_dim))
 
-    def forward(self, x: torch.Tensor, return_before_ln: bool = False):
+    def forward(self, x: torch.Tensor, return_before_ln: bool = False, return_attn: bool = False):
         x = self.conv1(x)  # shape = [*, width, grid, grid]
         x = x.reshape(x.shape[0], x.shape[1], -1)  # shape = [*, width, grid ** 2]
         x = x.permute(0, 2, 1)  # shape = [*, grid ** 2, width]
@@ -230,19 +245,26 @@ class VisionTransformer(nn.Module):
         x = self.ln_pre(x)
 
         x = x.permute(1, 0, 2)  # NLD -> LND
-        x = self.transformer(x)
+        if return_attn:
+            x, attns = self.transformer(x, return_attn = return_attn)
+        else:
+            x = self.transformer(x)
         x = x.permute(1, 0, 2)  # LND -> NLD
 
-        if return_before_ln:
-            return x
+        if return_before_ln and return_attn :
+            return x, attns
+        elif return_before_ln and not return_attn :
+            return x        
         else:
-
             x = self.ln_post(x[:, 0, :])
 
             if self.proj is not None:
                 x = x @ self.proj
 
-            return x
+            if return_attn:
+                return x, attns
+            else:
+                return x
 
 
 class CLIP(nn.Module):

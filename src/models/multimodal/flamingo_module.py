@@ -80,12 +80,16 @@ class FlamingoModule(pl.LightningModule):
                                     )
       
 
-    def forward(self, x):
+    def forward(self, x, return_attn=False):
         # in lightning, forward defines the prediction/inference actions
         images = x['image']
         input_tokens = x['input_ids']
-        flamingo_logits = self.flamingo_palm(input_tokens.squeeze(1), images.unsqueeze(1))
-        return flamingo_logits
+        if return_attn:
+            flamingo_logits, attns = self.flamingo_palm(input_tokens.squeeze(1), images.unsqueeze(1), return_attn = return_attn)
+            return flamingo_logits, attns
+        else:
+            flamingo_logits = self.flamingo_palm(input_tokens.squeeze(1), images.unsqueeze(1), return_attn = return_attn)
+            return flamingo_logits
 
     def training_step(self, batch, batch_idx):
         # training_step defined the train loop.

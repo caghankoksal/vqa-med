@@ -294,7 +294,7 @@ class FlamingoModel(nn.Module):
 
         # Load Embedding Weights
         self.token_emb.weight.data[:self.num_tokens -3] = state_dict['wte.weight']
-        print("Loaded GPT2 weights and Embeddings", "num_weights loaed : ",len(pretrained_dict.keys()))
+        print("Loaded GPT2 weights and Embeddings", "num_weights loaded : ",len(pretrained_dict.keys()))
 
 
     
@@ -302,7 +302,8 @@ class FlamingoModel(nn.Module):
         self,
         text,
         images=None,
-        image_embeds=None
+        image_embeds=None,
+        return_attn=False
     ):
         batch, device = text.shape[0], text.device
 
@@ -339,7 +340,10 @@ class FlamingoModel(nn.Module):
             images = rearrange(images, 'b t ... -> (b t) ...')
 
             with torch.no_grad():
-                image_embeds = self.img_encoder(images)
+                if return_attn:
+                    image_embeds, attns = self.img_encoder(images, return_attn=return_attn)
+                else:
+                    image_embeds = self.img_encoder(images)
             if self.img_encoder_outdim_layer != None:
                 image_embeds = self.img_encoder_outdim_layer(image_embeds)
 
@@ -361,5 +365,7 @@ class FlamingoModel(nn.Module):
                     image_embeds,
                     media_locations = media_locations
                 )
-
-        return self.to_logits(text_tokens)
+        if return_attn:
+            return self.to_logits(text_tokens), attns
+        else:
+            return self.to_logits(text_tokens)
