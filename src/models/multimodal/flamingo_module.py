@@ -12,30 +12,15 @@ import torchxrayvision as xrv
 
 
 class FlamingoModule(pl.LightningModule):
-    def __init__(self, pretrained_clip_path, total_steps, num_tokens = 31092, dim=512,
-                 depth=12, heads=8, dim_head=64, media_token_id=3190, cross_attn_every=3,
+    def __init__(self, pretrained_clip_path, warmup_steps = 569, num_tokens = 31092, dim=512,
+                 depth=12, num_heads=8, dim_head=64, media_token_id=3190, cross_attn_every=3,
                  perceiver_num_latents = 64, perceiver_depth = 2, image_encoder ="clip", 
                  language_model='gpt2', pretrained_gpt2_path=None ):
 
         super().__init__()
-        print("FlamingoModule will be initialized with parameters : ",
-                "Pretrained Clip Path : ", pretrained_clip_path, " \n",
-                "Total Steps : ", total_steps, " \n",
-                "Num Tokens : ", num_tokens, " \n",
-                "Dim : ", dim, " \n",
-                "Depth : ", depth, " \n",
-                "Heads : ", heads, " \n",
-                "Dim Head : ", dim_head, " \n",
-                "Media Token Id : ", media_token_id, " \n",
-                "Cross Attn Every : ", cross_attn_every, " \n",
-                "Perceiver Num Latents : ", perceiver_num_latents, " \n",
-                "Perceiver Depth : ", perceiver_depth, " \n",
-                "Image Encoder : ", image_encoder, " \n",
-                "Language Model : ", language_model, " \n",
-                "Pretrained GPT2 Path : ", pretrained_gpt2_path, " \n"
-            )
+        
         self.save_hyperparameters()
-        self.total_steps = total_steps
+        self.warmup_steps = warmup_steps
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if image_encoder == "clip" and pretrained_clip_path != None:
             print("Pretrained clip is being loaded")
@@ -67,7 +52,7 @@ class FlamingoModule(pl.LightningModule):
                                         num_tokens = num_tokens,                        # number of tokens
                                         dim = dim,                                      # dimensions
                                         depth = depth,                                  # depth
-                                        heads = heads,                                  # attention heads
+                                        heads = num_heads,                                  # attention heads
                                         dim_head = dim_head,                            # dimension per attention head
                                         img_encoder = image_encoder,               # plugin your image encoder (this can be optional if you pass in the image embeddings separately, but probably want to train end to end given the perceiver resampler)
                                         media_token_id = media_token_id,                # the token id representing the [media] or [image]
@@ -104,10 +89,14 @@ class FlamingoModule(pl.LightningModule):
         train_loss = torch.sum(train_loss*batch["token_type_ids"])/(torch.sum(batch["token_type_ids"])*batch_size)
         # Logging to TensorBoard by default
         #self.log("train_loss", train_loss)
-        comet_logs = {'train_loss': train_loss}
+        #comet_logs = {'train_loss': train_loss}
         self.log("train_loss",train_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
-        return {'loss': train_loss, 'log': comet_logs}
+        #self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
+        self.logger.experiment.add_scalars("losses", {"train_loss": train_loss},self.global_step)
+        #self.logger.experiment.add_scalar("train_loss", train_loss,self.global_step)
+        #self.logger.experiment.add_scalar('lr', self.trainer.lr_schedulers[0]["scheduler"].get_lr()[0], self.global_step)
+
+        return {'loss': train_loss}
 
     def validation_step(self, batch, batch_idx):
         # val defined the training loop.
@@ -121,19 +110,20 @@ class FlamingoModule(pl.LightningModule):
         val_loss = torch.sum(val_loss*batch["token_type_ids"])/(torch.sum(batch["token_type_ids"])*batch_size)
         # Logging to TensorBoard by default
         self.log("val_loss", val_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        comet_logs = {'val_loss': val_loss}
-        self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
-
-        return {'val_loss': val_loss, "log": comet_logs}
+        #comet_logs = {'val_loss': val_loss}
+        #self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
+        #self.logger.experiment.add_scalar("val_loss", val_loss,self.global_step)
+        self.logger.experiment.add_scalars("losses", {"validation_loss": val_loss},self.global_step)
+        return {'val_loss': val_loss}
 
 
     def validation_end(self, outputs):
         # OPTIONAL
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
-        comet_logs = {'avg_val_loss': avg_loss}
+        #comet_logs = {'avg_val_loss': avg_loss}
         self.log("avg_val_loss", avg_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
-        return {'avg_val_loss': avg_loss, 'log': comet_logs}
+        #self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
+        return {'avg_val_loss': avg_loss}
 
 
         
@@ -147,13 +137,27 @@ class FlamingoModule(pl.LightningModule):
 
         ratio = 500/500.000 = 0.001
 
+        We train 200 Epochs with a batch size of 64.
+        Full Dataset:
+        Train Set len :   182268
+        Validation Set len :  22783
+        Test Set len :  22784
+
+        182268/64(Batch Size) = 2847 Steps in one epoch
+
+        2847 * 200(num epochs) =  569400 Steps in total
+
+        # According to Flamingos strategy
+
+        569400* 0.001 = 569 Steps for Learning Rate Warm up
+
         # Number of totals steps : num_epochs * num_batches   
 
         """
 
         scheduler = get_constant_schedule_with_warmup(
                     optimizer,
-                    num_warmup_steps=200,
+                    num_warmup_steps=self.warmup_steps,
                 )
         scheduler = {"scheduler": scheduler, "interval": "step", "frequency": 1}
         return [optimizer], [scheduler]
