@@ -21,55 +21,59 @@ seed_everything(42, workers=True)
 
 
 
+
 augmentations = {'train':
     T.Compose(
     [
         T.Resize((224, 224)),
-        T.RandomApply([T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.1)], p=0.8),
-        #T.RandomGrayscale(p=0.2),
         T.ToTensor(),
+        T.RandomRotation(10),
     ]),
     'val':
     T.Compose(
     [
         T.Resize((224, 224)),
-        T.RandomApply([T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.1)], p=0.8),
-        #T.RandomGrayscale(p=0.2),
-        #T.GaussianBlur(kernel_size=9),
+        T.RandomRotation(10),
         T.ToTensor(),
     ])
 }
 
+
 # Hyperparameters
 NUM_DATA_WORKERS  = 0
 ONLY_IMAGES = False
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 NUM_EPOCHS = 200
 LIMIT_NUM_SAMPLES = None
 
 if os.getcwd().startswith('/home/mlmi-matthias'):
     ACCELERATOR = "gpu"
-    DEVICES = [0]
+    DEVICES = [7]
     PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
     PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
     MIMIC_CXR_DCM_PATH = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
     MIMIC_CXR_JPG_PATH = "/home/mlmi-matthias/physionet.org/files/mimic-cxr-jpg/2.0.0/files/"
+    SPLIT_PATH = '/home/mlmi-matthias/Caghan/mlmi-vqa/data/external/'
 
 elif os.getcwd().startswith('/Users/caghankoksal'):
     PRETRAINED_CLIP_PATH = '/Users/caghankoksal/Desktop/development/PubMedCLIP_ViT32.pth'
     PRETRAINED_GPT2_PATH = "/Users/caghankoksal/Desktop/development/TransformerPlay/gpt2-pytorch_model.bin"
     ACCELERATOR = "cpu"
-    DEVICES = 0
+    DEVICES = 1
     MIMIC_CXR_DCM_PATH = '/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/'
     MIMIC_CXR_JPG_PATH = '/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/'
+    SPLIT_PATH = '/Users/caghankoksal/Desktop/SS2022/mlmi-vqa/data/external/'
+
 
 IMAGE_TYPE = "jpg"
 TOKENIZER  = "gpt2"
+PREPROCESSED = False
 
 mimic_datamodule = MIMICCXRDataModule(MIMIC_CXR_DCM_PATH, MIMIC_CXR_JPG_PATH, 
                                       transforms=augmentations, only_images=False, batch_size=BATCH_SIZE,
                                       limit_num_samples=LIMIT_NUM_SAMPLES, num_data_workers=NUM_DATA_WORKERS,
-                                      tokenizer=TOKENIZER,image_type=IMAGE_TYPE)
+                                      tokenizer="gpt2",image_type="jpg", split_path=SPLIT_PATH, preprocessed=PREPROCESSED
+)
 
 
 train_loader = mimic_datamodule.train_dataloader()
@@ -80,10 +84,9 @@ print("Total training steps : ", len(mimic_datamodule.train_dataset)//BATCH_SIZE
 
 
 # MODEL HPRAMS
-VOCAB_SIZE_OF_TOKENIZER = mimic_datamodule.train_dataset.tokenizer.vocab_size
-VOCAB_SIZE_OF_TOKENIZER
+VOCAB_SIZE_OF_TOKENIZER = 50257 # mimic_datamodule.train_dataset.tokenizer.vocab_size
 LANGUAGE_MODEL = 'gpt2'
-NUM_TOKENS = VOCAB_SIZE_OF_TOKENIZER+3 if LANGUAGE_MODEL=="gpt2" else 31092
+NUM_TOKENS = VOCAB_SIZE_OF_TOKENIZER +3 if LANGUAGE_MODEL=="gpt2" else 31092
 FLAMINGO_EMBED_DIM = 768
 DEPTH = 12
 NUM_HEADS = 8
@@ -93,13 +96,6 @@ MEDIA_TOKEN_ID = mimic_datamodule.train_dataset.tokenizer.all_special_ids[mimic_
 PERCEIVER_NUM_LATENTS = 64
 PERCEIVER_DEPTH = 2
 IMAGE_ENCODER = "clip"
-
-
-# COMET EXPERIMENT LOGGER
-COMET_API_KEY = "F2L19mQwKXSoeF1IYEDA2AeHD",
-PROJECT_KEY = "flamingo-gpt2"
-
-TOTAL_STEPS=20000
 
 
 
@@ -118,35 +114,32 @@ print("LANGUAGE_MODEL : ",LANGUAGE_MODEL, "\n"
         "PRETRAINED_GPT2_PATH : ",PRETRAINED_GPT2_PATH, "\n")
 
 
-model = FlamingoModule(pretrained_clip_path = PRETRAINED_CLIP_PATH,
-                      total_steps=TOTAL_STEPS, num_tokens = NUM_TOKENS,
-                      dim=FLAMINGO_EMBED_DIM, depth=DEPTH, heads=NUM_HEADS, dim_head=ATT_HEAD_DIM,
-                      media_token_id=MEDIA_TOKEN_ID, cross_attn_every=CROOS_ATT_EVERY,
-                      perceiver_num_latents = PERCEIVER_NUM_LATENTS, perceiver_depth = PERCEIVER_DEPTH,
-                      image_encoder =IMAGE_ENCODER, language_model = LANGUAGE_MODEL,
-                      pretrained_gpt2_path=PRETRAINED_GPT2_PATH
-                        )
+hyperparams = {
+    'pretrained_clip_path': PRETRAINED_CLIP_PATH,
+    'warmup_steps': 569,
+    'num_tokens': NUM_TOKENS,
+    'dim': FLAMINGO_EMBED_DIM,
+    'depth': DEPTH,
+    'num_heads': NUM_HEADS,
+    'dim_head': ATT_HEAD_DIM,
+    'cross_attn_every': CROOS_ATT_EVERY,
+    'media_token_id': MEDIA_TOKEN_ID,
+    'perceiver_num_latents': PERCEIVER_NUM_LATENTS,
+    'perceiver_depth': PERCEIVER_DEPTH,
+    'image_encoder': IMAGE_ENCODER,
+    'language_model': LANGUAGE_MODEL,
+    'pretrained_gpt2_path': PRETRAINED_GPT2_PATH,
+}
 
-# LOGGER
-comet_logger = CometLogger(
-    api_key= COMET_API_KEY,
-    project_name=PROJECT_KEY)
+
+model = FlamingoModule(**hyperparams)
+
 
 lr_monitor = LearningRateMonitor(logging_interval='step')
-tb_logger = pl_loggers.TensorBoardLogger(save_dir="pll_logs/")
 
 
 trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                      accelerator=ACCELERATOR, devices=DEVICES,
-                     logger=[tb_logger,comet_logger],
                      callbacks=[lr_monitor])
 
 trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
-
-
-
-
-
-
-
-
