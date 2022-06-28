@@ -18,21 +18,25 @@ DATA_JSON_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/data/external/mimic_cxr_al
 with open(DATA_JSON_PATH, "r") as f:
    valid_data_points = json.load(f)
 
-for file in tqdm(valid_data_points):
-    folder_path = file['folder_path']
-    new_folder_path = folder_path.replace("mimic-cxr-jpg","mimic-cxr-jpg-resized")
-    if not path.isdir(new_folder_path):
-        makedirs(new_folder_path)
 
-    for img_path in glob.glob1(folder_path,"*.jpg"):
-        cur_img_full_path = os.path.join(folder_path, img_path)
-        try:
-            cur_img = Image.open(cur_img_full_path)
-            cur_img_resized = cur_img.resize((224,224))
-            cur_img_resized.save(fp=os.path.join(new_folder_path,img_path),format="JPEG",quality=100)
-        except:
-            print("Error in resizing",cur_img_full_path)
-            continue
+
+
+def resize_images_all(valid_data_points):
+    for file in tqdm(valid_data_points):
+        folder_path = file['folder_path']
+        new_folder_path = folder_path.replace("mimic-cxr-jpg","mimic-cxr-jpg-resized")
+        if not path.isdir(new_folder_path):
+            makedirs(new_folder_path)
+
+        for img_path in glob.glob1(folder_path,"*.jpg"):
+            cur_img_full_path = os.path.join(folder_path, img_path)
+            try:
+                cur_img = Image.open(cur_img_full_path)
+                cur_img_resized = cur_img.resize((224,224))
+                cur_img_resized.save(fp=os.path.join(new_folder_path,img_path),format="JPEG",quality=100)
+            except:
+                print("Error in resizing",cur_img_full_path)
+                continue
 
 
     
