@@ -110,7 +110,7 @@ class MIMICCXR(Dataset):
                 images_path = images_path[:1]
             # TODO slow for loop -> make it faster?  
             for image in images_path:
-                in_file = open(image, 'rb')
+                in_file = open(os.path.join(folder_path, image), 'rb')
                 img = self.jpeg.decode(in_file.read())
                 np.moveaxis(img,-1,0)                       # make it (3,224,224)
                 in_file.close()
