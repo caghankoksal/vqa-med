@@ -1,0 +1,834 @@
+[
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10095258/s55820483",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10095258/s55820483.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10083754/s55837751",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10083754/s55837751.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10052926/s56799999",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10052926/s56799999.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10013643/s55641691",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10013643/s55641691.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10076958/s51801244",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10076958/s51801244.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10071821/s50598160",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10071821/s50598160.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10057559/s54225705",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10057559/s54225705.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10077298/s50389495",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10077298/s50389495.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10062692/s59688344",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10062692/s59688344.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10021487/s51955860",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10021487/s51955860.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10065383/s51280385",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10065383/s51280385.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10018423/s58815716",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10018423/s58815716.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10080928/s59397987",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10080928/s59397987.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10058033/s55746324",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10058033/s55746324.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10048703/s55889095",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10048703/s55889095.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10071281/s54174022",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10071281/s54174022.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10097491/s57905428",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10097491/s57905428.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10069423/s59981182",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10069423/s59981182.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10070928/s56788284",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10070928/s56788284.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10058575/s55928284",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10058575/s55928284.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10089085/s55822470",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10089085/s55822470.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10003637/s51461467",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10003637/s51461467.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10012292/s57676120",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10012292/s57676120.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10014532/s59161733",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10014532/s59161733.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10014967/s52591138",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10014967/s52591138.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10018081/s56762822",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10018081/s56762822.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10015860/s55513261",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10015860/s55513261.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10080961/s51592221",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10080961/s51592221.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10013653/s53718217",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10013653/s53718217.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10064049/s51327292",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10064049/s51327292.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10030487/s50519814",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10030487/s50519814.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10089085/s50062404",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10089085/s50062404.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039272/s55751631",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039272/s55751631.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10092009/s57379959",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10092009/s57379959.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10084069/s59998484",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10084069/s59998484.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10014610/s54331589",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10014610/s54331589.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039708/s52492334",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039708/s52492334.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10065383/s53483649",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10065383/s53483649.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10001884/s51817555",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10001884/s51817555.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10093425/s52517711",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10093425/s52517711.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10081891/s56639766",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10081891/s56639766.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10060142/s59490715",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10060142/s59490715.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10071403/s53531489",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10071403/s53531489.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10087981/s55345449",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10087981/s55345449.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10064049/s59114682",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10064049/s59114682.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10012261/s56872341",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10012261/s56872341.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10013653/s50370108",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10013653/s50370108.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10037020/s58400371",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10037020/s58400371.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10058575/s51144654",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10058575/s51144654.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10014354/s56187971",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10014354/s56187971.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10056612/s57492693",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10056612/s57492693.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10001884/s52060840",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10001884/s52060840.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10002428/s59891001",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10002428/s59891001.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10055034/s52988883",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10055034/s52988883.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10070592/s50488552",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10070592/s50488552.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10071403/s50863940",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10071403/s50863940.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10048710/s52513745",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10048710/s52513745.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10024913/s59681425",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10024913/s59681425.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10038999/s53658987",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10038999/s53658987.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10092149/s56664236",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10092149/s56664236.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10011365/s53459647",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10011365/s53459647.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10074556/s52494638",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10074556/s52494638.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10007795/s54054513",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10007795/s54054513.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10088966/s56032947",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10088966/s56032947.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10015129/s57452970",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10015129/s57452970.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10045929/s58067291",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10045929/s58067291.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039272/s56823182",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039272/s56823182.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10071869/s54202380",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10071869/s54202380.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10015931/s57792054",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10015931/s57792054.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039302/s52140570",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039302/s52140570.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10045929/s58111227",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10045929/s58111227.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10076958/s51811757",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10076958/s51811757.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10082560/s50563159",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10082560/s50563159.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10031358/s59457485",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10031358/s59457485.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10020740/s57634229",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10020740/s57634229.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10080443/s58695222",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10080443/s58695222.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10002430/s56345275",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10002430/s56345275.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10044096/s57401874",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10044096/s57401874.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10051043/s51917464",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10051043/s51917464.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10003019/s58505074",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10003019/s58505074.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10073847/s50470993",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10073847/s50470993.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10003502/s52139270",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10003502/s52139270.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10043321/s51406412",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10043321/s51406412.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10057009/s55685825",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10057009/s55685825.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10008304/s50053244",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10008304/s50053244.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10095139/s56862352",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10095139/s56862352.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10091327/s55193209",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10091327/s55193209.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10001122/s53957785",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10001122/s53957785.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10095361/s51258475",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10095361/s51258475.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10065383/s55376096",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10065383/s55376096.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10043321/s59164130",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10043321/s59164130.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10013866/s56834987",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10013866/s56834987.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10004457/s55439624",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10004457/s55439624.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10048244/s54685030",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10048244/s54685030.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10071869/s50216971",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10071869/s50216971.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10085902/s53924698",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10085902/s53924698.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10013569/s56197670",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10013569/s56197670.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10005368/s57426090",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10005368/s57426090.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10080928/s54842185",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10080928/s54842185.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10023117/s56067386",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10023117/s56067386.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10062501/s55699985",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10062501/s55699985.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039302/s52548274",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039302/s52548274.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10012498/s55812956",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10012498/s55812956.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10021487/s52515667",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10021487/s52515667.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10058974/s54893609",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10058974/s54893609.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10063280/s57709757",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10063280/s57709757.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10018081/s55297211",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10018081/s55297211.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10046679/s52148996",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10046679/s52148996.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10010867/s51308353",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10010867/s51308353.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10027100/s59896865",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10027100/s59896865.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10033290/s53250799",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10033290/s53250799.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10013643/s58785837",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10013643/s58785837.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10058575/s50325664",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10058575/s50325664.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039272/s52657157",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039272/s52657157.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039953/s55660029",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039953/s55660029.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10015272/s56985410",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10015272/s56985410.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10015931/s56053701",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10015931/s56053701.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10037928/s55225655",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10037928/s55225655.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10086841/s58132780",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10086841/s58132780.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10027602/s59761701",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10027602/s59761701.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10003400/s53341253",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10003400/s53341253.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10054639/s52018146",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10054639/s52018146.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10078115/s55962269",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10078115/s55962269.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10040768/s54897161",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10040768/s54897161.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10076958/s54746884",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10076958/s54746884.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10026950/s51906383",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10026950/s51906383.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039272/s57688550",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039272/s57688550.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10010471/s59553780",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10010471/s59553780.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10010867/s53658667",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10010867/s53658667.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10080961/s58001323",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10080961/s58001323.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10092355/s59927040",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10092355/s59927040.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10074556/s53079175",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10074556/s53079175.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10089085/s56364174",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10089085/s56364174.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10071869/s53370316",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10071869/s53370316.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10018081/s57486705",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10018081/s57486705.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039272/s50384423",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039272/s50384423.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10037602/s56937008",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10037602/s56937008.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10002428/s57064083",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10002428/s57064083.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10095181/s51068699",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10095181/s51068699.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10081525/s51427176",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10081525/s51427176.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10011607/s59358789",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10011607/s59358789.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10025268/s50115535",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10025268/s50115535.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10020740/s52180258",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10020740/s52180258.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10065383/s52736576",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10065383/s52736576.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10055694/s54848722",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10055694/s54848722.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10011668/s50539024",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10011668/s50539024.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10046166/s57379357",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10046166/s57379357.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10037928/s50369509",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10037928/s50369509.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10016742/s51823916",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10016742/s51823916.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10010961/s54061694",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10010961/s54061694.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10086560/s53962945",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10086560/s53962945.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10063280/s52504796",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10063280/s52504796.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10048244/s55126369",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10048244/s55126369.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10021348/s58126648",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10021348/s58126648.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10095141/s59265243",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10095141/s59265243.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10010638/s55178098",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10010638/s55178098.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039708/s51380099",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039708/s51380099.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10094107/s52616515",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10094107/s52616515.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10089085/s52256341",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10089085/s52256341.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10073336/s57056744",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10073336/s57056744.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10072167/s53950117",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10072167/s53950117.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10023708/s56514664",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10023708/s56514664.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10030487/s52922406",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10030487/s52922406.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039708/s54676653",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039708/s54676653.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10066489/s57690363",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10066489/s57690363.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10084739/s57855081",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10084739/s57855081.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10048451/s56379266",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10048451/s56379266.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10016742/s50273193",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10016742/s50273193.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10083754/s50779872",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10083754/s50779872.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10020944/s57029107",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10020944/s57029107.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10079117/s57518177",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10079117/s57518177.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039708/s53671981",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039708/s53671981.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10015860/s52909824",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10015860/s52909824.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10018081/s51331930",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10018081/s51331930.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10010867/s51163513",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10010867/s51163513.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10005749/s53170451",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10005749/s53170451.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10003412/s59172281",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10003412/s59172281.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10025458/s54445248",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10025458/s54445248.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10018081/s52015079",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10018081/s52015079.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10025759/s57075951",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10025759/s57075951.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10019003/s54798105",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10019003/s54798105.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10014765/s57515592",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10014765/s57515592.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10024048/s51288130",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10024048/s51288130.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10014610/s57344954",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10014610/s57344954.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10065383/s56624805",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10065383/s56624805.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10070592/s59696628",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10070592/s59696628.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10023117/s56007252",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10023117/s56007252.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10095570/s56624188",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10095570/s56624188.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10007795/s56375093",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10007795/s56375093.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10064049/s54392870",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10064049/s54392870.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10039272/s50589184",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10039272/s50589184.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10082560/s59544711",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10082560/s59544711.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10094706/s51681931",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10094706/s51681931.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10024982/s53186936",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10024982/s53186936.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10003502/s53282957",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10003502/s53282957.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10065656/s54193874",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10065656/s54193874.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10021927/s57834745",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10021927/s57834745.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10097232/s51834590",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10097232/s51834590.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10021927/s58429029",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10021927/s58429029.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10083754/s59125232",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10083754/s59125232.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10027957/s59195693",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10027957/s59195693.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10044189/s56174180",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10044189/s56174180.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10026255/s50356590",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10026255/s50356590.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10002013/s55969846",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10002013/s55969846.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10081245/s57174937",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10081245/s57174937.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10089767/s52342913",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10089767/s52342913.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10002131/s52823782",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10002131/s52823782.txt"
+  },
+  {
+    "folder_path": "/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/p10/p10095181/s52185486",
+    "txt_path": "/Users/caghankoksal/Desktop/development/Flamingo-playground/physionet.org/files/mimic-cxr/2.0.0/files/p10/p10095181/s52185486.txt"
+  }
+]
