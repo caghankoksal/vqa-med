@@ -5,27 +5,35 @@ from torch import einsum, nn
 from ..text.gpt2_layers import TransformerBlockGPT2
 
 from .flamingo_pytorch_original import GatedCrossAttentionBlock, PerceiverResampler
+
 # Owner: Lucidrains -> https://github.com/lucidrains/flamingo-pytorch  #I will hack and update necessary parts for my use case
 # helper functions
+
 
 def exists(val):
     return val is not None
 
+
 # for controlling freezing during training of flamingo
+
 
 def set_module_requires_grad_(module, requires_grad):
     for param in module.parameters():
         param.requires_grad = requires_grad
 
+
 def freeze_all_layers_(module):
     set_module_requires_grad_(module, False)
+
 
 def unfreeze_all_layers_(module):
     set_module_requires_grad_(module, True)
 
+
 def freeze_model_and_make_eval_(model):
     model.eval()
     freeze_all_layers_(model)
+
 
 # normalization
 # they use layernorm without bias, something that pytorch does not offer
@@ -39,6 +47,7 @@ class LayerNorm(nn.Module):
 
     def forward(self, x):
         return F.layer_norm(x, x.shape[-1:], self.gamma, self.beta)
+
 
 # residual
 
@@ -108,10 +117,7 @@ class ParallelTransformerBlock(nn.Module):
         self.fused_attn_ff_proj = nn.Linear(dim, sum(self.fused_dims), bias=False)
         self.attn_out = nn.Linear(attn_inner_dim, dim, bias=False)
 
-        self.ff_out = nn.Sequential(
-            SwiGLU(),
-            nn.Linear(ff_inner_dim, dim, bias=False)
-        )
+        self.ff_out = nn.Sequential(SwiGLU(), nn.Linear(ff_inner_dim, dim, bias=False))
 
         # for caching causal mask and rotary embeddings
 
@@ -193,9 +199,7 @@ class ParallelTransformerBlock(nn.Module):
         return self.attn_out(out) + self.ff_out(ff)
 
 
-
-
-#Generic Flamingo Model for both GPT2 and Flamingo
+# Generic Flamingo Model for both GPT2 and Flamingo
 class FlamingoModel(nn.Module):
     def __init__(
         self,
@@ -212,17 +216,19 @@ class FlamingoModel(nn.Module):
         perceiver_num_latents=64,
         perceiver_depth=2,
         only_attend_immediate_media=True,
-        language_model = 'palm',
+        language_model="palm",
         img_encoder_outdim=512,
         pretrained_gpt2_path=None
     ):
 
         super().__init__()
         self.num_tokens = num_tokens
-
+        self.dim = dim
         self.token_emb = nn.Embedding(num_tokens, dim)
-        self.media_token_id = media_token_id # you need to reserve a special token id for media
-
+        self.media_token_id = (
+            media_token_id  # you need to reserve a special token id for media
+        )
+        self.img_encoder_outdim = img_encoder_outdim
         self.img_encoder = img_encoder
         freeze_model_and_make_eval_(self.img_encoder)
 
@@ -231,40 +237,51 @@ class FlamingoModel(nn.Module):
             depth=perceiver_depth,
             dim_head=dim_head,
             heads=heads,
-            num_latents=perceiver_num_latents
+            num_latents=perceiver_num_latents,
         )
 
-        self.img_encoder_outdim_layer  = None
-        if img_encoder_outdim != dim:
+        self.img_encoder_outdim_layer = None
+        if self.img_encoder_outdim != self.dim:
             self.img_encoder_outdim = img_encoder_outdim
-            self.img_encoder_outdim_layer = nn.Linear(img_encoder_outdim, dim)
-
-        
+            self.img_encoder_outdim_layer = nn.Linear(img_encoder_outdim, self.dim)
 
         self.layers = nn.ModuleList([])
         for ind in range(depth):
-            self.layers.append(nn.ModuleList([
-                # According to parameter, palm or gpt2 transformer blocks are used.
-                Residual(ParallelTransformerBlock(dim=dim, dim_head=dim_head, heads=heads, ff_mult=ff_mult) if language_model == 'palm' else TransformerBlockGPT2(d_model=dim, n_head=depth, dropout=0.1)),
-                GatedCrossAttentionBlock(dim=dim, dim_head=dim_head, heads=heads, only_attend_immediate_media=only_attend_immediate_media) if not (ind % cross_attn_every) else None
-            ]))
+            self.layers.append(
+                nn.ModuleList(
+                    [
+                        # According to parameter, palm or gpt2 transformer blocks are used.
+                        Residual(
+                            ParallelTransformerBlock(
+                                dim=dim, dim_head=dim_head, heads=heads, ff_mult=ff_mult
+                            )
+                            if language_model == "palm"
+                            else TransformerBlockGPT2(
+                                d_model=dim, n_head=depth, dropout=0.1
+                            )
+                        ),
+                        GatedCrossAttentionBlock(
+                            dim=dim,
+                            dim_head=dim_head,
+                            heads=heads,
+                            only_attend_immediate_media=only_attend_immediate_media,
+                        )
+                        if not (ind % cross_attn_every)
+                        else None,
+                    ]
+                )
+            )
 
-    
         self.to_logits = nn.Sequential(
-            LayerNorm(dim),
-            nn.Linear(dim, num_tokens, bias=False)
+            LayerNorm(dim), nn.Linear(dim, num_tokens, bias=False)
         )
 
-        if language_model == 'gpt2' and pretrained_gpt2_path is not None:
-                self.load_gpt2_weights(pretrained_gpt2_path)
+        if language_model == "gpt2" and pretrained_gpt2_path is not None:
+            self.load_gpt2_weights(pretrained_gpt2_path)
 
         # they used embedding weight tied projection out to logits, not common, but works
         self.to_logits[-1].weight = self.token_emb.weight
         nn.init.normal_(self.token_emb.weight, std=0.02)
-
-
-        
-
 
     def load_gpt2_weights(self, path):
         """
@@ -274,36 +291,35 @@ class FlamingoModel(nn.Module):
         old_keys = []
         new_keys = []
         model_dict = self.layers.state_dict()
-        state_dict = torch.load(path) #pretrained weights
-        for key in state_dict.keys(): 
-            if key.startswith('h'):
-                cur_key  = key.replace('h.','')
-                cur_key = cur_key.replace('mlp','feedforward')
-                index_point = cur_key.index('.')
-                cur_key = cur_key[:index_point+1] + '0.fn.' + cur_key[index_point+1:]
+        state_dict = torch.load(path)  # pretrained weights
+        for key in state_dict.keys():
+            if key.startswith("h"):
+                cur_key = key.replace("h.", "")
+                cur_key = cur_key.replace("mlp", "feedforward")
+                index_point = cur_key.index(".")
+                cur_key = (
+                    cur_key[: index_point + 1] + "0.fn." + cur_key[index_point + 1 :]
+                )
 
                 new_keys.append(cur_key)
                 old_keys.append(key)
 
-        for old_key, new_key in zip(old_keys, new_keys): 
-            state_dict[new_key]=state_dict.pop(old_key)
+        for old_key, new_key in zip(old_keys, new_keys):
+            state_dict[new_key] = state_dict.pop(old_key)
 
         pretrained_dict = {k: v for k, v in state_dict.items() if k in model_dict}
         model_dict.update(pretrained_dict)
         self.layers.load_state_dict(model_dict)
 
-        # Load Embedding Weights
-        self.token_emb.weight.data[:self.num_tokens -3] = state_dict['wte.weight']
-        print("Loaded GPT2 weights and Embeddings", "num_weights loaed : ",len(pretrained_dict.keys()))
+        # Load Embedding Weights
+        self.token_emb.weight.data[: self.num_tokens - 3] = state_dict["wte.weight"]
+        print(
+            "Loaded GPT2 weights and Embeddings",
+            "num_weights loaded : ",
+            len(pretrained_dict.keys()),
+        )
 
-
-    
-    def forward(
-        self,
-        text,
-        images=None,
-        image_embeds=None
-    ):
+    def forward(self, text, images=None, image_embeds=None, return_attn=False):
         batch, device = text.shape[0], text.device
 
         flamingo_mode = exists(images) or exists(image_embeds)
@@ -314,9 +330,17 @@ class FlamingoModel(nn.Module):
             # in flamingo mode, freeze everything but perceiver and gated cross attention
             freeze_all_layers_(self)
             unfreeze_all_layers_(self.perceiver_resampler)
-            [unfreeze_all_layers_(cross_attn) for _, cross_attn in self.layers if exists(cross_attn)]
+            [
+                unfreeze_all_layers_(cross_attn)
+                for _, cross_attn in self.layers
+                if exists(cross_attn)
+            ]
         else:
             unfreeze_all_layers_(self)
+        # This is downsample layer which is not used in Flamingo to reduce the dimensionality of the image embedding
+        # given by the clip
+        if self.img_encoder_outdim != self.dim:
+            unfreeze_all_layers_(self.img_encoder_outdim_layer)
 
         # derive the media token ids (as a boolean tensor), for calculating the masked cross attention
 
@@ -331,15 +355,22 @@ class FlamingoModel(nn.Module):
         # it can also accept precomputed image embeddings
 
         if exists(images):
-            assert exists(self.img_encoder), 'img_encoder must be passed in for automatic image encoding'
-            images = rearrange(images, 'b t ... -> (b t) ...')
+            assert exists(
+                self.img_encoder
+            ), "img_encoder must be passed in for automatic image encoding"
+            images = rearrange(images, "b t ... -> (b t) ...")
 
             with torch.no_grad():
-                image_embeds = self.img_encoder(images)
+                if return_attn:
+                    image_embeds, attns = self.img_encoder(
+                        images, return_attn=return_attn
+                    )
+                else:
+                    image_embeds = self.img_encoder(images)
             if self.img_encoder_outdim_layer != None:
                 image_embeds = self.img_encoder_outdim_layer(image_embeds)
 
-            image_embeds = rearrange(image_embeds, '(b t) ... -> b t ...', b = batch)
+            image_embeds = rearrange(image_embeds, "(b t) ... -> b t ...", b=batch)
 
         if exists(image_embeds):
             image_embeds = self.perceiver_resampler(image_embeds)
@@ -353,9 +384,9 @@ class FlamingoModel(nn.Module):
             # do the cross attention
             if exists(flamingo_cross_attn) and exists(image_embeds):
                 text_tokens = flamingo_cross_attn(
-                    text_tokens,
-                    image_embeds,
-                    media_locations = media_locations
+                    text_tokens, image_embeds, media_locations=media_locations
                 )
-
-        return self.to_logits(text_tokens)
+        if return_attn:
+            return self.to_logits(text_tokens), attns
+        else:
+            return self.to_logits(text_tokens)
