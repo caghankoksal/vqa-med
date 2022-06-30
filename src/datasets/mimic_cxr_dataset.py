@@ -1,17 +1,19 @@
+import json
+import glob
+import os
+import numpy as np
 import torch
+import torchvision.transforms as T
+import pytorch_lightning as pl 
+
 from torch.utils.data import DataLoader, Dataset
 from fastai.medical.imaging import get_dicom_files
 from sklearn import model_selection
-import torchvision.transforms as T
-import os
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM,PreTrainedTokenizerFast, GPT2Tokenizer
-import numpy as np
 from PIL import Image
-import pytorch_lightning as pl 
 from tqdm import tqdm as tqdm
-from PIL import Image
-import json
-import glob
+from turbojpeg import TurboJPEG
+
 
 class MIMICCXR(Dataset):
     """ MIMIC CXR Dataset"""
@@ -28,6 +30,11 @@ class MIMICCXR(Dataset):
         self.tokenizer_type ='gpt2'
         self.image_type  = image_type
         self.preprocessed = preprocessed
+
+        if self.image_type == 'jpeg':
+            self.jpeg = TurboJPEG()
+        else:
+            self.jpeg = None
         
         if tokenizer == "sciFive":
             self.tokenizer = AutoTokenizer.from_pretrained("razent/SciFive-large-Pubmed_PMC-MedNLI")
@@ -97,12 +104,16 @@ class MIMICCXR(Dataset):
                         
                 images.append(img_2d_scaled_process)
 
-        elif self.image_type == 'jpg':
+        if self.image_type == 'jpg':
             images_path = [x for x in os.listdir(folder_path) if x.endswith(('jpg', 'png'))]
             if self.only_first_image is True:
                 images_path = images_path[:1]
+            # TODO slow for loop -> make it faster?  
             for image in images_path:
-                img = Image.open(os.path.join(folder_path, image)).convert("RGB")
+                in_file = open(os.path.join(folder_path, image), 'rb')
+                img = self.jpeg.decode(in_file.read())
+                np.moveaxis(img,-1,0)                       # make it (3,224,224)
+                in_file.close()
                 if self.transforms is not None:
                     img_2d_scaled_process = self.transforms(img)
                 else:
