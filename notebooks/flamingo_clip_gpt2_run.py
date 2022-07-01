@@ -140,10 +140,14 @@ if __name__ == '__main__':
 
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
-
+    from pytorch_lightning.callbacks import ModelCheckpoint
+    checkpoint_callback = ModelCheckpoint(
+                filename='{epoch}-{val_loss:.2f}-{other_metric:.2f}',
+                    monitor= 'val_loss',
+                        save_top_k = 10)
 
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
-                        callbacks=[lr_monitor])
+                        callbacks=[lr_monitor, checkpoint_callback])
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
