@@ -232,15 +232,15 @@ class MIMICCXRDataModule(pl.LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
-                          num_workers=self.num_data_workers)
+                          num_workers=self.num_data_workers, pin_memory=True)
 
     def val_dataloader(self):
         return DataLoader(self.validation_dataset, batch_size=self.batch_size,
-                          num_workers=self.num_data_workers)
+                          num_workers=self.num_data_workers, pin_memory=True)
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size,
-                          num_workers=self.num_data_workers)
+                          num_workers=self.num_data_workers, pin_memory=True)
 
     # Jpeg files does not include the patient information.
     def return_valid_samples(self, cxr_dcm_path, cxr_jpg_path):
