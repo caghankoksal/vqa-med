@@ -31,10 +31,10 @@ class MIMICCXR(Dataset):
         self.image_type  = image_type
         self.preprocessed = preprocessed
 
-        if self.image_type == 'jpg':
-            self.jpeg = TurboJPEG()
-        else:
-            self.jpeg = None
+        #if self.image_type == 'jpg':
+           # self.jpeg = TurboJPEG()
+        #else:
+        self.jpeg = None
         
         if tokenizer == "sciFive":
             self.tokenizer = AutoTokenizer.from_pretrained("razent/SciFive-large-Pubmed_PMC-MedNLI")
@@ -112,10 +112,11 @@ class MIMICCXR(Dataset):
                 images_path = images_path[:1]
             # TODO slow for loop -> make it faster?  
             for image in images_path:
-                in_file = open(os.path.join(folder_path, image), 'rb')
-                img = self.jpeg.decode(in_file.read())
-                np.moveaxis(img,-1,0)                       # make it (3,224,224)
-                in_file.close()
+                #in_file = open(os.path.join(folder_path, image), 'rb')
+                #img = self.jpeg.decode(in_file.read())
+                #np.moveaxis(img,-1,0)                       # make it (3,224,224)
+                #in_file.close()
+                img = Image.open(os.path.join(folder_path,image)).convert('RGB')
                 if self.transforms is not None:
                     img_2d_scaled_process = self.transforms(img)
                 else:

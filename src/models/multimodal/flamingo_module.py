@@ -173,6 +173,7 @@ class FlamingoModule(pl.LightningModule):
             on_epoch=True,
             prog_bar=True,
             logger=True,
+            sync_dist=True
         )
         # comet_logs = {'val_loss': val_loss}
         # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
@@ -193,6 +194,7 @@ class FlamingoModule(pl.LightningModule):
             on_epoch=True,
             prog_bar=True,
             logger=True,
+            sync_dist=True
         )
         # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
         return {"avg_val_loss": avg_loss}
