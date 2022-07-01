@@ -79,7 +79,8 @@ mimic_datamodule = MIMICCXRDataModule(MIMIC_CXR_DCM_PATH, MIMIC_CXR_JPG_PATH,
 train_loader = mimic_datamodule.train_dataloader()
 val_loader = mimic_datamodule.val_dataloader()
 
-print("Len training dataset : ", len(mimic_datamodule.train_dataset), "Batch Size : ", BATCH_SIZE, "NUM_EPOCHS : ",NUM_EPOCHS )
+print("Len training dataset : ", len(mimic_datamodule.train_dataset),
+    "Batch Size : ", BATCH_SIZE, "NUM_EPOCHS : ",NUM_EPOCHS )
 print("Total training steps : ", len(mimic_datamodule.train_dataset)//BATCH_SIZE*NUM_EPOCHS)
 
 
@@ -92,7 +93,8 @@ DEPTH = 12
 NUM_HEADS = 8
 ATT_HEAD_DIM = 64
 CROOS_ATT_EVERY=3
-MEDIA_TOKEN_ID = mimic_datamodule.train_dataset.tokenizer.all_special_ids[mimic_datamodule.train_dataset.tokenizer.all_special_tokens.index('<image>')]
+MEDIA_TOKEN_ID = mimic_datamodule.train_dataset.tokenizer.\
+    all_special_ids[mimic_datamodule.train_dataset.tokenizer.all_special_tokens.index('<image>')]
 PERCEIVER_NUM_LATENTS = 64
 PERCEIVER_DEPTH = 2
 IMAGE_ENCODER = "clip"
