@@ -319,22 +319,18 @@ class FlamingoModel(nn.Module):
             len(pretrained_dict.keys()),
         )
 
-    def forward(self, text, images=None, image_embeds=None, return_attn=False):
-        batch, device = text.shape[0], text.device
-
-        flamingo_mode = exists(images) or exists(image_embeds)
-
-        # automatically take care of freezing or unfreezing depending on what is passed in
-
-        if flamingo_mode:
+        self.train_embedding_layer=True
+        self.flamingo_mode = True
+         # automatically take care of freezing or unfreezing depending on what is passed in
+        if self.flamingo_mode:
             # in flamingo mode, freeze everything but perceiver and gated cross attention
             freeze_all_layers_(self)
             unfreeze_all_layers_(self.perceiver_resampler)
-            [
-                unfreeze_all_layers_(cross_attn)
-                for _, cross_attn in self.layers
-                if exists(cross_attn)
-            ]
+
+            for _, cross_attn in self.layers:
+                if exists(cross_attn):
+                    unfreeze_all_layers_(cross_attn)
+
         else:
             unfreeze_all_layers_(self)
         # This is downsample layer which is not used in Flamingo to reduce the dimensionality of the image embedding
@@ -342,10 +338,17 @@ class FlamingoModel(nn.Module):
         if self.img_encoder_outdim != self.dim:
             unfreeze_all_layers_(self.img_encoder_outdim_layer)
 
+        if self.train_embedding_layer:
+            unfreeze_all_layers_(self.token_emb)
+
+
+
+    def forward(self, text, images=None, image_embeds=None, return_attn=False):
+        batch, device = text.shape[0], text.device
+
         # derive the media token ids (as a boolean tensor), for calculating the masked cross attention
 
-        if flamingo_mode:
-            media_locations = text == self.media_token_id
+        media_locations = text == self.media_token_id
         text_tokens = self.token_emb(text)
 
         assert not (exists(images) and exists(image_embeds))
@@ -367,7 +370,7 @@ class FlamingoModel(nn.Module):
                     )
                 else:
                     image_embeds = self.img_encoder(images)
-            if self.img_encoder_outdim_layer != None:
+            if self.img_encoder_outdim_layer is not None:
                 image_embeds = self.img_encoder_outdim_layer(image_embeds)
 
             image_embeds = rearrange(image_embeds, "(b t) ... -> b t ...", b=batch)
