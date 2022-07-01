@@ -17,9 +17,9 @@ from turbojpeg import TurboJPEG
 
 class MIMICCXR(Dataset):
     """ MIMIC CXR Dataset"""
-    def __init__(self, valid_indices, only_first_image = True, only_images=False, 
+    def __init__(self, valid_indices, only_first_image=True, only_images=False,
                 tokenizer='scibert', tokenizer_add_special_tokens=True, token_max_len=256,
-                return_pil=False, transforms=None,image_type='dcm', preprocessed = True):
+                return_pil=False, transforms=None, image_type='dcm', preprocessed=True):
 
         self.valid_indices = valid_indices
         self.only_first_image = only_first_image
@@ -31,7 +31,7 @@ class MIMICCXR(Dataset):
         self.image_type  = image_type
         self.preprocessed = preprocessed
 
-        if self.image_type == 'jpeg':
+        if self.image_type == 'jpg':
             self.jpeg = TurboJPEG()
         else:
             self.jpeg = None
@@ -65,7 +65,7 @@ class MIMICCXR(Dataset):
         sample = self.valid_indices[idx]
         if self.preprocessed:
             folder_path = sample['folder_path'].replace("mimic-cxr-jpg","mimic-cxr-jpg-resized")
-            txt_path = sample['txt_path'].replace("mimic-cxr","mimic-cxr-txt")
+            txt_path = sample['txt_path']#.replace("mimic-cxr","mimic-cxr-txt")
         else:
             folder_path = sample['folder_path']
             txt_path = sample['txt_path']
@@ -76,7 +76,7 @@ class MIMICCXR(Dataset):
         if self.image_type == 'dcm':
             dcom_images = get_dicom_files(folder_path)
             # Take the first image as the image to be predicted
-            if self.only_first_image==True:
+            if self.only_first_image is True:
                 dcom_images = dcom_images[:1]
 
             for img in dcom_images:
@@ -93,7 +93,9 @@ class MIMICCXR(Dataset):
                 # Add 3rd dimension to gray image
                 if len(img_2d_scaled.shape) == 2:
                     img_2d_scaled_process = img_2d_scaled[:, :, np.newaxis]
-                    img_2d_scaled_process = np.concatenate([img_2d_scaled_process, img_2d_scaled_process, img_2d_scaled_process], axis=2)             
+                    img_2d_scaled_process = np.concatenate([img_2d_scaled_process,
+                                                            img_2d_scaled_process,
+                                                            img_2d_scaled_process], axis=2)
                 img_2d_scaled_process = Image.fromarray(img_2d_scaled_process)
 
                 if self.transforms is not None:
@@ -101,7 +103,7 @@ class MIMICCXR(Dataset):
                 else:
                     if not self.return_pil:
                         img_2d_scaled_process = T.transforms.ToTensor()(img_2d_scaled_process)
-                        
+
                 images.append(img_2d_scaled_process)
 
         if self.image_type == 'jpg':
@@ -122,12 +124,8 @@ class MIMICCXR(Dataset):
                         
                 images.append(img_2d_scaled_process)
 
-
-
-        
         if self.only_first_image is True:
             images = images[0]
-
 
         # Text Processing
         if self.only_images is  False:
@@ -203,8 +201,8 @@ class MIMICCXRDataModule(pl.LightningDataModule):
             val_split_path = self.split_path + "mimic_cxr_val.json"
             test_split_path = self.split_path + "mimic_cxr_test.json"
 
-            with open(all_datapoints_path, 'r') as f:
-                all_datapoints = json.load(f)
+            #with open(all_datapoints_path, 'r') as f:
+                #all_datapoints = json.load(f)
 
             with open(train_split_path, 'r') as f:
                 self.train_split = json.load(f)
@@ -221,26 +219,27 @@ class MIMICCXRDataModule(pl.LightningDataModule):
             self.val_split = self.val_split[:self.limit_num_samples]
             self.test_split = self.test_split[:self.limit_num_samples]
 
-            
-
         self.train_dataset = MIMICCXR(self.train_split, transforms=self.transforms["train"],
                                      tokenizer=self.tokenizer, image_type=self.image_type,
                                      preprocessed = self.preprocessed)
         self.validation_dataset = MIMICCXR(self.val_split, transforms=self.transforms["val"],
                                            tokenizer=self.tokenizer, image_type=self.image_type,
                                            preprocessed = self.preprocessed)
-        self.test_dataset = MIMICCXR(self.test_split, tokenizer=self.tokenizer, image_type=self.image_type,
-                                    preprocessed = self.preprocessed
+        self.test_dataset = MIMICCXR(self.test_split, tokenizer=self.tokenizer,
+                                    image_type=self.image_type, preprocessed = self.preprocessed
         )
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_data_workers)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size,
+                          num_workers=self.num_data_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.validation_dataset, batch_size=self.batch_size, num_workers=self.num_data_workers)
+        return DataLoader(self.validation_dataset, batch_size=self.batch_size,
+                          num_workers=self.num_data_workers)
 
     def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=self.num_data_workers)
+        return DataLoader(self.test_dataset, batch_size=self.batch_size,
+                          num_workers=self.num_data_workers)
 
     # Jpeg files does not include the patient information.
     def return_valid_samples(self, cxr_dcm_path, cxr_jpg_path):
