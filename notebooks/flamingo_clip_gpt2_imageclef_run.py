@@ -28,7 +28,7 @@ if __name__ == '__main__':
         
         'train': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
-                            T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))m
+                            T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
                             ]),
         'val': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
@@ -56,7 +56,7 @@ if __name__ == '__main__':
         MIMIC_CXR_DCM_PATH = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
         MIMIC_CXR_JPG_PATH = "/home/mlmi-matthias/physionet.org/files/mimic-cxr-jpg/2.0.0/files/"
         SPLIT_PATH = '/home/mlmi-matthias/Caghan/mlmi-vqa/data/external/'
-        IMAGECLEF_PATH ='/home/mlmi-matthias/imagepwdclef/'
+        IMAGECLEF_PATH ='/home/mlmi-matthias/imageclef/'
         CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt"
 
 
