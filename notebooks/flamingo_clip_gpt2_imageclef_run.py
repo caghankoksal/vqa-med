@@ -28,7 +28,7 @@ if __name__ == '__main__':
         
         'train': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
-                            T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
+                            T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))m
                             ]),
         'val': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
@@ -37,7 +37,7 @@ if __name__ == '__main__':
         'test': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
                             T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
-                            ]),
+                            ])
     }
 
     
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     if os.getcwd().startswith('/home/mlmi-matthias'):
         ACCELERATOR = "gpu"
-        DEVICES = [7]
+        DEVICES = [4,5,6,7]
         PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
         PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
         MIMIC_CXR_DCM_PATH = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
