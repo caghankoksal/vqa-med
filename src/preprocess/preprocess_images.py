@@ -1,6 +1,8 @@
 import os
 import glob
 import json
+import numpy as np
+import multiprocessing as mp
 from os import makedirs, path
 from PIL import Image
 from tqdm import tqdm as tqdm
@@ -28,9 +30,11 @@ with open(DATA_JSON_PATH, "r") as f:
     valid_data_points = json.load(f)
 
 
-def resize_images_all(data_points):
-    """_summary_"""
-    for file in tqdm(data_points):
+def resize_images_all(data_points, slice):
+    """
+    Resize images and store them, keeping the structure of the dataset
+    """
+    for file in tqdm(data_points[slice]):
         folder_path = file["folder_path"]
         new_folder_path = folder_path.replace("mimic-cxr-jpg", "mimic-cxr-jpg-resized")
         if not path.isdir(new_folder_path):
@@ -51,4 +55,26 @@ def resize_images_all(data_points):
                 continue
 
 
-resize_images_all(valid_data_points)
+# setup parallelization parameters
+nr_samples = len(valid_data_points)
+n_proc = 1
+offset = 0
+
+chunksize = nr_samples // n_proc
+proc_slices = []
+
+for i_proc in range(n_proc):
+    chunkstart = int(offset + (i_proc * chunksize))
+    # make sure to include the division remainder for the last process
+    chunkend = int(offset + (i_proc + 1) * chunksize) if i_proc < n_proc - 1 else int(offset + nr_samples)
+    proc_slices.append(np.s_[chunkstart:chunkend])
+
+print(proc_slices)
+
+params = [(valid_data_points, slice) for slice in proc_slices]
+
+running_tasks = [mp.Process(target=resize_images_all, args=param) for param in params]
+for running_task in running_tasks:
+    running_task.start()
+for running_task in running_tasks:
+    running_task.join()
