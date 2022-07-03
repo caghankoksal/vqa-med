@@ -15,6 +15,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning import loggers as pl_loggers
 
 from src.datasets.imageclef_dataset import ImageCLEF2021DataModule
+import torch
 
 if __name__ == '__main__':
     # sets seeds for numpy, torch, python.random and PYTHONHASHSEED.
@@ -25,13 +26,16 @@ if __name__ == '__main__':
         
         'train': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
-                            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))]),
+                            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+                            ]),
         'val': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
-                            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))]),
+                            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+                            ]),
         'test': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
-                            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))]),
+                            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+                            ]),
     }
 
     
@@ -50,7 +54,8 @@ if __name__ == '__main__':
         MIMIC_CXR_DCM_PATH = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
         MIMIC_CXR_JPG_PATH = "/home/mlmi-matthias/physionet.org/files/mimic-cxr-jpg/2.0.0/files/"
         SPLIT_PATH = '/home/mlmi-matthias/Caghan/mlmi-vqa/data/external/'
-        IMAGECLEF_PATH ='/home/mlmi-matthias/imageclef/'
+        IMAGECLEF_PATH ='/home/mlmi-matthias/imagepwdclef/'
+        CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt"
 
 
     elif os.getcwd().startswith('/Users/caghankoksal'):
@@ -62,6 +67,8 @@ if __name__ == '__main__':
         MIMIC_CXR_JPG_PATH = '/Users/caghankoksal/Desktop/development/physionet.org/files/mimic-cxr-jpg/2.0.0/files/'
         SPLIT_PATH = '/Users/caghankoksal/Desktop/SS2022/mlmi-vqa/data/external/'
         IMAGECLEF_PATH = "/Users/caghankoksal/Desktop/imageclef/"
+        CHECKPOINT_PATH = "/Users/caghankoksal/Desktop/logs_from_cluster/version_20/checkpoints/epoch=117-val_loss=0.84-other_metric=0.00.ckpt"
+
 
 
     IMAGE_TYPE = "jpg"
@@ -130,7 +137,15 @@ if __name__ == '__main__':
 
 
     model = FlamingoModule(**hyperparams)
+    
+    START_FROM_CHECKPOINT = True
 
+    if START_FROM_CHECKPOINT:
+        print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
+        if os.getcwd().startswith('/home/mlmi-matthias'):
+            model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"])
+        else:
+            model.load_state_dict(torch.load(CHECKPOINT_PATH,map_location=torch.device('cpu'))["state_dict"])
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
 
@@ -140,7 +155,7 @@ if __name__ == '__main__':
     checkpoint_callback = ModelCheckpoint(
                 filename='{epoch}-{val_loss:.2f}-{other_metric:.2f}',
                     monitor= 'val_loss',
-                        save_top_k = 10)
+                        save_top_k = 5)
 
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
