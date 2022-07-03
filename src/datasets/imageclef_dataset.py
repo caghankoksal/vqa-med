@@ -38,13 +38,15 @@ def make_testset(root, mode='test2021'):
 class MedLTDataset(Dataset):
     def __init__(self,root = 'data/', path='test2021', mode='train', transform=None,
                  return_size=False,tokenizer='scibert', tokenizer_add_special_tokens=True,
-                 token_max_len=128):
+                 token_max_len=128, limit_num_samples=None, tokenizer_type='gpt2'):
         self.mode = mode
         self.transform = transform
         self.return_size = return_size
         self.path = path
         self.root = root
-        self.tokenizer_type = tokenizer
+        self.tokenizer_type = tokenizer_type
+        self.limit_num_samples = limit_num_samples
+
         if mode == 'train':
             imgs = make_dataset(root+mode)
         elif mode == 'val':
@@ -81,6 +83,10 @@ class MedLTDataset(Dataset):
             num_added_toks = self.tokenizer.add_special_tokens(special_tokens_dict)
 
 
+        if self.limit_num_samples:
+            imgs = imgs[:self.limit_num_samples]
+
+
     def __getitem__(self, item):
         if  self.mode != 'test':
             image_name, question, answer = self.imgs[item]
@@ -100,7 +106,6 @@ class MedLTDataset(Dataset):
         else:
             sample = {'image': image, 'question': question}
 
-        sample["withoutTransform_img"] = image.copy()
         if self.transform:
             sample["image"] = self.transform(sample["image"])
 
@@ -139,7 +144,7 @@ class MedLTDataset(Dataset):
 
 class ImageCLEF2021DataModule(pl.LightningDataModule):
     def __init__(self, root='data', batch_size: int = 32, transforms=None, tokenizer:str ='gpt2',
-                 return_size = False, num_data_workers=0):
+                 return_size = False, num_data_workers=0, limit_num_samples=None):
         super().__init__()
         self.root = root
         self.batch_size = batch_size
@@ -147,6 +152,7 @@ class ImageCLEF2021DataModule(pl.LightningDataModule):
         self.tokenizer = tokenizer
         self.return_size = return_size
         self.num_data_workers = num_data_workers
+        self.limit_num_samples = limit_num_samples
 
         self.setup()
 
@@ -154,20 +160,23 @@ class ImageCLEF2021DataModule(pl.LightningDataModule):
         self.train_dataset = MedLTDataset(root=self.root, mode='train',
                                           transform=self.transforms['train'],
                                           tokenizer=self.tokenizer,
-                                          return_size=self.return_size)
+                                          return_size=self.return_size,
+                                          limit_num_samples=self.limit_num_samples)
         self.val_dataset = MedLTDataset(root=self.root,mode='val',
                                         transform=self.transforms['val'],
-                                        tokenizer=self.tokenizer, return_size=self.return_size)
-        self.test_dataset = MedLTDataset(root=self.root, mode='test', 
-                                         transform=self.transforms['test'], 
-                                         tokenizer=self.tokenizer, return_size=self.return_size)
+                                        tokenizer=self.tokenizer, return_size=self.return_size,
+                                        limit_num_samples=self.limit_num_samples)
+        self.test_dataset = MedLTDataset(root=self.root, mode='test',
+                                         transform=self.transforms['test'],
+                                         tokenizer=self.tokenizer, return_size=self.return_size,
+                                        limit_num_samples=self.limit_num_samples)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
                           num_workers=self.num_data_workers, pin_memory=True)
 
     def val_dataloader(self):
-        return DataLoader(self.validation_dataset, batch_size=self.batch_size,
+        return DataLoader(self.val_dataset, batch_size=self.batch_size,
                           num_workers=self.num_data_workers, pin_memory=True)
 
     def test_dataloader(self):
