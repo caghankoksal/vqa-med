@@ -145,9 +145,10 @@ if __name__ == '__main__':
                 filename='{epoch}-{val_loss:.2f}-{other_metric:.2f}',
                     monitor= 'val_loss',
                         save_top_k = 10)
-
+    from pytorch_lightning.strategies import DDPStrategy
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
-                        callbacks=[lr_monitor, checkpoint_callback])
+                        callbacks=[lr_monitor, checkpoint_callback],
+                        strategy=DDPStrategy(find_unused_parameters=False))
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
