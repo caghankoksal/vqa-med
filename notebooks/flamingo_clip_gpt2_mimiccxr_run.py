@@ -20,15 +20,21 @@ if __name__ == '__main__':
     seed_everything(42, workers=True)
 
 
-
+    
+    #MIMIC CXR  Mean and Std of the dataset
+    #mean: tensor([0.4719, 0.4719, 0.4719])
+    #std:  tensor([0.3029, 0.3029, 0.3029])
+    
 
     augmentations = {'train':
         T.Compose(
         [
         # T.Resize((224, 224)),
         # T.ToTensor(),
+        
             T.RandomRotation(10),
             T.ToTensor(),
+            T.Normalize(mean=(0.4719, 0.4719, 0.4719), std=(0.3029, 0.3029, 0.3029))
         ]),
         'val':
         T.Compose(
@@ -37,6 +43,16 @@ if __name__ == '__main__':
             #T.ToTensor(),
             T.RandomRotation(10),
             T.ToTensor(),
+            T.Normalize(mean=(0.4719, 0.4719, 0.4719), std=(0.3029, 0.3029, 0.3029))
+        ]),
+        'test':
+        T.Compose(
+        [
+            #T.Resize((224, 224)),
+            #T.ToTensor(),
+            T.RandomRotation(10),
+            T.ToTensor(),
+            T.Normalize(mean=(0.4719, 0.4719, 0.4719), std=(0.3029, 0.3029, 0.3029))
         ])
     }
 

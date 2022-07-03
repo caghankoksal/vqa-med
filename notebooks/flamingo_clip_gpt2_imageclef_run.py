@@ -21,20 +21,22 @@ if __name__ == '__main__':
     # sets seeds for numpy, torch, python.random and PYTHONHASHSEED.
     seed_everything(42, workers=True)
 
- 
+    # Mean and std of the dataset
+    # mean: tensor([0.2570, 0.2570, 0.2570])
+    # std:  tensor([0.2710, 0.2712, 0.2711])
     augmentations = {
         
         'train': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
-                            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+                            T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
                             ]),
         'val': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
-                            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+                            T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
                             ]),
         'test': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
-                            T.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+                            T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
                             ]),
     }
 
