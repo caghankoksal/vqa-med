@@ -20,7 +20,7 @@ from turbojpeg import TurboJPEG
 ## NOTE: The VQA RAD dataset has 107 unique chest xray images and ~700 QAs
 
 class VQARadDataset(Dataset):
-    def __init__(self, root, samples, transform=None, 
+    def __init__(self, root, mode='train', samples=None, transform=None,
                 tokenizer='scibert', question_tokenize=None, answer_tokenize=None, tokenizer_add_special_tokens=True, 
                 token_max_length=256, return_pil=False, preprocessed=True, load_in_memory=False):
         self.root = root
@@ -28,6 +28,7 @@ class VQARadDataset(Dataset):
         self.samples = samples
         self.load_in_memory = load_in_memory
         self.jpeg = TurboJPEG()
+        self.mode = mode
 
 
         if load_in_memory:
@@ -39,7 +40,7 @@ class VQARadDataset(Dataset):
             print(f'Found {len(files)} chest xrays in folder')
 
             for file in files:
-                in_file = open(file), 'rb')
+                in_file = open(file, 'rb')
                 img = self.jpeg.decode(in_file.read())
                 np.moveaxis(img,-1,0)                       # make it (3,224,224)
                 in_file.close()
@@ -83,7 +84,7 @@ class VQARadDataset(Dataset):
         if self.load_in_memory:
             img = self.data_images[image_name]
         else:
-            in_file = open(cur_sample['image_path']), 'rb')
+            in_file = open(cur_sample['image_path'], 'rb')
             img = self.jpeg.decode(in_file.read())
             np.moveaxis(img,-1,0)                       # make it (3,224,224)
             in_file.close()
@@ -109,7 +110,10 @@ class VQARadDataset(Dataset):
         pad_token_id = self.tokenizer.pad_token_id
         targets = torch.cat( ( input_ids[:,1:], torch.tensor([pad_token_id]).unsqueeze(1) ), dim=1)
 
-        return {"image":img, "text": question, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
+        if self.mode == "test":
+            return {"image":img, "question": question, "qa_pair": text, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
+        else:
+            return {"image":img, "question": question, "answer": answer, "qa_pair": text, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
 
 
 class VQRadDataModule(pl.LightningDataModule):
@@ -135,9 +139,9 @@ class VQRadDataModule(pl.LightningDataModule):
         
         # only use 90% for train-val, 10% is always test
         # from which train is 80% and val is 20%
-        train_test_split = 0.9 * len(self.data_points)
-        self.train_split, self.val_split = model_selection.train_test_split(self.data_points[:train_test_split], test_size=0.2, shuffle=self.shuffle)
-        self.test_split = self.data_points[train_test_split:]
+        train_test_split = int(0.9 * len(self.sample_dicts))
+        self.train_split, self.val_split = model_selection.train_test_split(self.sample_dicts[:train_test_split], test_size=0.2, shuffle=self.shuffle)
+        self.test_split = self.sample_dicts[train_test_split:]
 
         # Limit all predefined paths to the number of limited samples
         if self.limit_num_samples is not None:
@@ -145,13 +149,13 @@ class VQRadDataModule(pl.LightningDataModule):
             self.val_split = self.val_split[:self.limit_num_samples]
             self.test_split = self.test_split[:self.limit_num_samples]
 
-        self.train_dataset = VQARadDataset(self.root, self.train_split, transforms=self.transforms["train"],
+        self.train_dataset = VQARadDataset(self.root, 'train', self.train_split, transform=self.transforms["train"],
                                     tokenizer=self.tokenizer, preprocessed = self.preprocessed, load_in_memory = self.load_in_memory)
 
-        self.validation_dataset = VQARadDataset(self.root, self.val_split, transforms=self.transforms["val"],
+        self.validation_dataset = VQARadDataset(self.root, 'val', self.val_split, transform=self.transforms["val"],
                                     tokenizer=self.tokenizer, preprocessed = self.preprocessed, load_in_memory = self.load_in_memory)
 
-        self.test_dataset = VQARadDataset(self.root, self.test_split, transforms=self.transforms["val"], 
+        self.test_dataset = VQARadDataset(self.root, 'test', self.test_split, transform=self.transforms["val"], 
                                     tokenizer=self.tokenizer, preprocessed = self.preprocessed, load_in_memory = self.load_in_memory)
 
     def train_dataloader(self):
