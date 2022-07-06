@@ -164,3 +164,8 @@ notebooks/pll_logs
 notebooks/flamingo-gpt2/
 notebooks/comet-default
 notebooks/lightning_logs_flamingo-gpt2
+.idea/workspace.xml
+.idea/vcs.xml
+.idea/modules.xml
+.idea/mlmi-vqa.iml
+.idea/inspectionProfiles/profiles_settings.xml
