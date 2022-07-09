@@ -38,7 +38,7 @@ class RocoDataset(Dataset):
         self,
         mode: str,
         root="",
-        token_max_len=70,
+        token_max_len=128,
         input_size = 224,
         transform: Optional[Callable] = None,
         tokenizer: str = "scibert",
@@ -50,7 +50,6 @@ class RocoDataset(Dataset):
         self.input_size = input_size
         self.mode = mode
         self.transform = transform
-        self.max_seq_length = token_max_len
         self.limit_num_samples = limit_num_samples
         self.tokenizer_type = tokenizer_type
         self.tokenizer_add_special_tokens = tokenizer_add_special_tokens
@@ -142,7 +141,7 @@ class RocoDataset(Dataset):
 
 class ROCODataModule(pl.LightningDataModule):
     def __init__(self, root='data', batch_size: int = 32, augmentations=None, tokenizer:str ='gpt2',
-                 return_size = False, num_data_workers=0, limit_num_samples=None):
+                 return_size = False, num_data_workers=0, limit_num_samples=None, token_max_len=256):
         super().__init__()
         self.root = root
         self.batch_size = batch_size
@@ -151,6 +150,7 @@ class ROCODataModule(pl.LightningDataModule):
         self.return_size = return_size
         self.num_data_workers = num_data_workers
         self.limit_num_samples = limit_num_samples
+        self.token_max_len = token_max_len
 
         self.setup()
 
@@ -158,15 +158,26 @@ class ROCODataModule(pl.LightningDataModule):
         self.train_dataset = RocoDataset(root=self.root, mode='train',
                                           transform=self.transforms['train'],
                                           tokenizer=self.tokenizer,
-                                          limit_num_samples=self.limit_num_samples)
+                                          limit_num_samples=self.limit_num_samples,
+                                          tokenizer_type=self.tokenizer,
+                                          tokenizer_add_special_tokens=True,
+                                          token_max_len=self.token_max_len)
+
+
         self.val_dataset = RocoDataset(root=self.root,mode='validation',
                                         transform=self.transforms['validation'],
                                         tokenizer=self.tokenizer,
-                                        limit_num_samples=self.limit_num_samples)
+                                        limit_num_samples=self.limit_num_samples,
+                                        tokenizer_type=self.tokenizer,
+                                        tokenizer_add_special_tokens=True,
+                                        token_max_len=self.token_max_len)
         self.test_dataset = RocoDataset(root=self.root, mode='test',
                                          transform=self.transforms['test'],
                                          tokenizer=self.tokenizer,
-                                        limit_num_samples=self.limit_num_samples)
+                                         limit_num_samples=self.limit_num_samples,
+                                         tokenizer_type=self.tokenizer,
+                                         tokenizer_add_special_tokens=True,
+                                         token_max_len=self.token_max_len)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
