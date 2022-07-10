@@ -16,28 +16,28 @@ from pytorch_lightning import loggers as pl_loggers
 
 seed_everything(42, workers=True)
 
-img_mean = ()
-img_std = ()
+img_mean = (0.48,0.48,0.48)
+img_std = (0.265,0.265,0.265)
 
 transforms = {'train':
     T.Compose(
     [
         T.RandomRotation(10),
         T.ToTensor(),
-        T.Normalize(mean=img_mean, std=img_std)
+        # T.Normalize(mean=img_mean, std=img_std)
     ]),
     'val':
     T.Compose(
     [
         T.RandomRotation(10),
         T.ToTensor(),
-        T.Normalize(mean=img_mean, std=img_std)
+        # T.Normalize(mean=img_mean, std=img_std)
     ]),
     'test':
     T.Compose(
     [
         T.ToTensor(),
-        T.Normalize(mean=img_mean, std=img_std)
+        # T.Normalize(mean=img_mean, std=img_std)
     ])
 }
 
@@ -46,11 +46,13 @@ transforms = {'train':
 NUM_DATA_WORKERS  = 8
 ONLY_IMAGES = False
 BATCH_SIZE = 32
-NUM_EPOCHS = 50
+NUM_EPOCHS = 80
 LIMIT_NUM_SAMPLES = None
 
 ACCELERATOR = "gpu"
-DEVICES = [4]
+DEVICES = [1]
+# ACCELERATOR = "cpu"
+# DEVICES = 1
 DATASET_ROOT = '/home/mlmi-matthias/Data/VQA_RAD_preprocessed/'
 PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
 PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
@@ -145,10 +147,11 @@ checkpoint_callback = ModelCheckpoint(
                 monitor= 'val_loss',
                     save_top_k = 10)
 
-from pytorch_lightning.strategies import DDPStrategy
+# from pytorch_lightning.strategies import DDPStrategy
 trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                     accelerator=ACCELERATOR, devices=DEVICES,
                     callbacks=[lr_monitor, checkpoint_callback],
-                    strategy=DDPStrategy(find_unused_parameters=False))
+                    # strategy=DDPStrategy(find_unused_parameters=False)
+                    )
 
 trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
