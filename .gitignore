@@ -164,5 +164,11 @@ notebooks/pll_logs
 notebooks/flamingo-gpt2/
 notebooks/comet-default
 notebooks/lightning_logs_flamingo-gpt2
-notebooks/6ad03ed1-97ee17ee-9cf8b320-f7011003-cd93b42d.jpg
+.idea/workspace.xml
+.idea/vcs.xml
+.idea/modules.xml
+.idea/mlmi-vqa.iml
+.idea/inspectionProfiles/profiles_settings.xml
 notebooks/lightning_logs
+*.xlsx
+data/external/*.json
