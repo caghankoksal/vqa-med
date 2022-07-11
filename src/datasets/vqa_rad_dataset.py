@@ -6,6 +6,8 @@ import pickle as pkl
 import pytorch_lightning as pl 
 import numpy as np
 
+import torchvision.transforms as T
+
 from glob import glob
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets
@@ -29,22 +31,24 @@ class VQARadDataset(Dataset):
         self.load_in_memory = load_in_memory
         self.jpeg = TurboJPEG()
         self.mode = mode
+        self.tokenizer_type ='gpt2'
+        self.token_max_len = token_max_length
 
 
         if load_in_memory:
             # load all images in the folder
-            self.data_images = []
-            print(f'Loading all images into memory...')
+            self.data_images = {}
+            print(f'Loading all images into memory... for {mode}')
 
             files = glob(root + '/*.jpg')
-            print(f'Found {len(files)} chest xrays in folder')
-
+            
             for file in files:
                 in_file = open(file, 'rb')
                 img = self.jpeg.decode(in_file.read())
-                np.moveaxis(img,-1,0)                       # make it (3,224,224)
+                img = Image.fromarray(img)
                 in_file.close()
-                self.data_images.append({f'{os.path.basename(file)}': img})
+                img_name = os.path.basename(file)
+                self.data_images[img_name] = img
 
 
         if tokenizer == "sciFive":
@@ -86,7 +90,7 @@ class VQARadDataset(Dataset):
         else:
             in_file = open(cur_sample['image_path'], 'rb')
             img = self.jpeg.decode(in_file.read())
-            np.moveaxis(img,-1,0)                       # make it (3,224,224)
+            img = Image.fromarray(img)
             in_file.close()
 
         if self.transform is not None:
@@ -95,25 +99,31 @@ class VQARadDataset(Dataset):
             img = transforms.ToTensor()(img)
 
         # Put image at the beginning of the question
-        text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + question + ' Answer: ' + answer + ' <EOC>'
+        if self.mode == "test":
+            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + question + ' Answer: '
+        else:
+            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + question + ' Answer: ' + answer + ' <EOC>'
 
-        encoding = self.tokenizer.encode_plus(text, padding='max_length', truncation=True, max_length=self.token_max_len, return_tensors="pt")
+        input_encoding = self.tokenizer.encode_plus(text, padding='max_length', truncation=True, max_length=self.token_max_len, return_tensors="pt")
 
         if self.tokenizer_type == 'gpt2':
-            input_ids = encoding['input_ids']
-            token_type_ids = encoding['attention_mask']
+            input_ids = input_encoding['input_ids']
+            token_type_ids = input_encoding['attention_mask']
         else:
-            input_ids = encoding['input_ids']
-            token_type_ids = encoding['token_type_ids']
+            input_ids = input_encoding['input_ids']
+            token_type_ids = input_encoding['token_type_ids']
 
         eoc_token_id = self.tokenizer.all_special_ids[self.tokenizer.all_special_tokens.index('<EOC>')]
         pad_token_id = self.tokenizer.pad_token_id
+
+        # TODO create target without answer -> see what happens
+
         targets = torch.cat( ( input_ids[:,1:], torch.tensor([pad_token_id]).unsqueeze(1) ), dim=1)
 
-        if self.mode == "test":
-            return {"image":img, "question": question, "qa_pair": text, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
-        else:
-            return {"image":img, "question": question, "answer": answer, "qa_pair": text, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
+        # if self.mode == "test":
+        #     return {"image":img, "question": question, "answer": answer, "qa_pair": text, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
+        # else:
+        return {"image":img, "question": question, "answer": answer, "qa_pair": text, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
 
 
 class VQRadDataModule(pl.LightningDataModule):
