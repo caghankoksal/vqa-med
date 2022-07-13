@@ -58,6 +58,7 @@ if __name__ == '__main__':
         SPLIT_PATH = '/home/mlmi-matthias/Caghan/mlmi-vqa/data/external/'
         IMAGECLEF_PATH ='/home/mlmi-matthias/imageclef/'
         CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt"
+        ANSWERS_LIST_PATH = '/home/mlmi-matthias/Caghan/mlmi-vqa//data/external/answer_list_imageclef.txt'
 
 
     elif os.getcwd().startswith('/Users/caghankoksal'):
@@ -70,7 +71,7 @@ if __name__ == '__main__':
         SPLIT_PATH = '/Users/caghankoksal/Desktop/SS2022/mlmi-vqa/data/external/'
         IMAGECLEF_PATH = "/Users/caghankoksal/Desktop/imageclef/"
         CHECKPOINT_PATH = "/Users/caghankoksal/Desktop/logs_from_cluster/version_20/checkpoints/epoch=117-val_loss=0.84-other_metric=0.00.ckpt"
-
+        ANSWERS_LIST_PATH = '/Users/caghankoksal/Desktop/SS2022/mlmi-vqa/data/external/answer_list_imageclef.txt'
 
 
     IMAGE_TYPE = "jpg"
@@ -82,7 +83,8 @@ if __name__ == '__main__':
         "batch_size": BATCH_SIZE,
         "tokenizer": TOKENIZER,
         "return_size": False,
-        "num_data_workers": NUM_DATA_WORKERS
+        "num_data_workers": NUM_DATA_WORKERS,
+        "answer_list_path": ANSWERS_LIST_PATH,
     }
 
 
