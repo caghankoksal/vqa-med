@@ -1,4 +1,3 @@
-
 import argparse
 import os
 import torch
@@ -38,7 +37,8 @@ def make_testset(root, mode='test2021'):
 class MedLTDataset(Dataset):
     def __init__(self,root = 'data/', path='test2021', mode='train', transform=None,
                  return_size=False,tokenizer='scibert', tokenizer_add_special_tokens=True,
-                 token_max_len=128, limit_num_samples=None, tokenizer_type='gpt2'):
+                 token_max_len=128, limit_num_samples=None, tokenizer_type='gpt2',
+                 return_idx_answer_eoc=True):
         self.mode = mode
         self.transform = transform
         self.return_size = return_size
@@ -46,6 +46,7 @@ class MedLTDataset(Dataset):
         self.root = root
         self.tokenizer_type = tokenizer_type
         self.limit_num_samples = limit_num_samples
+        self.return_idx_answer_eoc = return_idx_answer_eoc
 
         if mode == 'train':
             imgs = make_dataset(root+mode)
@@ -130,6 +131,11 @@ class MedLTDataset(Dataset):
         pad_token_id = self.tokenizer.pad_token_id
         targets = torch.cat( ( input_ids[:,1:], torch.tensor([pad_token_id]).unsqueeze(1) ), dim=1)
 
+        if self.return_idx_answer_eoc:
+            index_of_answer = (input_ids==3280).nonzero()[0][-1].item()
+            index_of_eoc = (input_ids==50259).nonzero()[0][-1].item()
+            sample["index_answer"] = index_of_answer
+            sample["index_eoc"] = index_of_eoc
 
         sample["input_ids"] = input_ids
         sample["token_type_ids"] = token_type_ids
