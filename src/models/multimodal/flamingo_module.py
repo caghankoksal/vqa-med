@@ -283,7 +283,13 @@ class FlamingoModule(pl.LightningModule):
         Returns:
             _type_: _description_
         """
-        optimizer = torch.optim.AdamW(self.parameters(), lr=1e-4, weight_decay=0.01)
+        params = list(self.named_parameters())
+    
+        grouped_parameters = [
+        {"params": [p for n, p in params if n.startswith('flamingo_palm.perceiver_resampler')], 'weight_decay': 0},
+        {"params": [p for n, p in params if not n.startswith('flamingo_palm.perceiver_resampler') ],'weight_decay': 0.01 },
+        ]
+        optimizer = torch.optim.AdamW(grouped_parameters, lr=1e-4)
 
         scheduler = get_constant_schedule_with_warmup(
             optimizer,
