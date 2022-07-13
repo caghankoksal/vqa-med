@@ -12,7 +12,8 @@ from transformers import (
 from vit_pytorch.vit import ViT
 from vit_pytorch.extractor import Extractor
 import torchxrayvision as xrv
-
+from torch import nn 
+from torch import functional as F
 
 class FlamingoModule(pl.LightningModule):
     def __init__(
@@ -31,6 +32,8 @@ class FlamingoModule(pl.LightningModule):
         image_encoder="clip",
         language_model="gpt2",
         pretrained_gpt2_path=None,
+        classification_mode=True,
+        classification_num_classes = 332
     ):
 
         super().__init__()
@@ -38,6 +41,9 @@ class FlamingoModule(pl.LightningModule):
         self.save_hyperparameters()
         self.warmup_steps = warmup_steps
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.classification_mode= classification_mode
+        self.num_classification_classes = classification_num_classes
+
         if image_encoder == "clip" and pretrained_clip_path is not None:
             print("Pretrained clip is being loaded")
             model, _ = clip.load("ViT-B/32", device=device)
@@ -95,22 +101,39 @@ class FlamingoModule(pl.LightningModule):
             language_model=language_model,  # language model    (gpt2 or palm)
             img_encoder_outdim=self.img_encoder_outdim,
             pretrained_gpt2_path=pretrained_gpt2_path,
+            classification_mode = self.classification_mode,
         )
+
+        if self.classification_mode:
+            self.classifier = nn.Linear(dim, self.num_classification_classes)
+            nn.init.normal_(self.classifier.weight, std=0.01)
 
     def forward(self, x, return_attn=False):
         # in lightning, forward defines the prediction/inference actions
         images = x["image"]
         input_tokens = x["input_ids"]
+        index_eoc = x["index_eoc"]
+        batch_size = images.shape[0]
+        
         if return_attn:
             flamingo_logits, attns = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn
             )
             return flamingo_logits, attns
         else:
-            flamingo_logits = self.flamingo_palm(
-                input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn
-            )
-            return flamingo_logits
+            if self.classification_mode:
+                flamingo_logits, token_embeds = self.flamingo_palm(
+                    input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn
+                )
+                classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoc])
+                classification_logits = torch.softmax(classification_logits, dim=1)
+
+                return flamingo_logits, classification_logits
+            else:
+                flamingo_logits = self.flamingo_palm(
+                    input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn
+                )
+                return flamingo_logits
 
     def training_step(self, batch, batch_idx):
         # training_step defined the train loop.
@@ -118,10 +141,27 @@ class FlamingoModule(pl.LightningModule):
         images = batch["image"]
         input_tokens = batch["input_ids"]
         targets = batch["targets"]
-        flamingo_logits = self.flamingo_palm(
+        index_eoc = batch["index_eoc"]
+        class_labels = batch["label"]
+        batch_size = images.shape[0]
+
+        
+        if self.classification_mode:
+            flamingo_logits, token_embeds = self.flamingo_palm(
+                input_tokens.squeeze(1), images.unsqueeze(1)
+            )
+            classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoc])
+        else:
+            flamingo_logits = self.flamingo_palm(
             input_tokens.squeeze(1), images.unsqueeze(1)
         )
-        batch_size = flamingo_logits.shape[0]
+
+        # Classification Loss
+        if self.classification_mode:
+            train_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
+        
+
+
         train_loss = nn.CrossEntropyLoss(reduction="none")(
             torch.permute(flamingo_logits, (0, 2, 1)), targets.squeeze(1)
         )
@@ -133,8 +173,16 @@ class FlamingoModule(pl.LightningModule):
         # self.log("train_loss", train_loss)
         # comet_logs = {'train_loss': train_loss}
         self.log(
-            "train_loss",
+            "train_loss_generation",
             train_loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+        )
+        self.log(
+            "train_classification_loss",
+            train_classification_loss,
             on_step=True,
             on_epoch=True,
             prog_bar=True,
@@ -142,12 +190,12 @@ class FlamingoModule(pl.LightningModule):
         )
         # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
         self.logger.experiment.add_scalars(
-            "losses", {"train_loss": train_loss}, self.global_step
+            "losses", {"train_loss": train_loss + train_classification_loss}, self.global_step
         )
         # self.logger.experiment.add_scalar("train_loss", train_loss,self.global_step)
         # self.logger.experiment.add_scalar('lr', self.trainer.lr_schedulers[0]["scheduler"].get_lr()[0], self.global_step)
 
-        return {"loss": train_loss}
+        return {"loss": train_loss + classification_loss}
 
     def validation_step(self, batch, batch_idx):
         # val defined the training loop.
@@ -155,10 +203,24 @@ class FlamingoModule(pl.LightningModule):
         images = batch["image"]
         input_tokens = batch["input_ids"]
         targets = batch["targets"]
-        flamingo_logits = self.flamingo_palm(
+        index_eoc = batch["index_eoc"]
+        class_labels = batch["label"]
+        batch_size = images.shape[0]
+
+        if self.classification_mode:
+            flamingo_logits, token_embeds = self.flamingo_palm(
+                input_tokens.squeeze(1), images.unsqueeze(1)
+            )
+            classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoc])
+        else:
+            flamingo_logits = self.flamingo_palm(
             input_tokens.squeeze(1), images.unsqueeze(1)
         )
-        batch_size = flamingo_logits.shape[0]
+
+        # Classification Loss
+        if self.classification_mode:
+            val_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
+
         val_loss = nn.CrossEntropyLoss(reduction="none")(
             torch.permute(flamingo_logits, (0, 2, 1)), targets.squeeze(1)
         )
@@ -167,8 +229,17 @@ class FlamingoModule(pl.LightningModule):
         )
         # Logging to TensorBoard by default
         self.log(
-            "val_loss",
+            "val_loss_generation",
             val_loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+            sync_dist=True
+        )
+        self.log(
+            "val_classification_loss",
+            val_classification_loss,
             on_step=True,
             on_epoch=True,
             prog_bar=True,
@@ -179,25 +250,11 @@ class FlamingoModule(pl.LightningModule):
         # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
         # self.logger.experiment.add_scalar("val_loss", val_loss,self.global_step)
         self.logger.experiment.add_scalars(
-            "losses", {"validation_loss": val_loss}, self.global_step
+            "losses", {"validation_loss": val_loss+ val_classification_loss}, self.global_step
         )
-        return {"val_loss": val_loss}
+        return {"val_loss": val_loss + val_classification_loss}
 
-    def validation_end(self, outputs):
-        # OPTIONAL
-        avg_loss = torch.stack([x["val_loss"] for x in outputs]).mean()
-        # comet_logs = {'avg_val_loss': avg_loss}
-        self.log(
-            "avg_val_loss",
-            avg_loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-            sync_dist=True
-        )
-        # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
-        return {"avg_val_loss": avg_loss}
+
 
     def configure_optimizers(self):
         """

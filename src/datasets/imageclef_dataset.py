@@ -164,7 +164,8 @@ class MedLTDataset(Dataset):
 
 class ImageCLEF2021DataModule(pl.LightningDataModule):
     def __init__(self, root='data', batch_size: int = 32, transforms=None, tokenizer:str ='gpt2',
-                 return_size = False, num_data_workers=0, limit_num_samples=None, answers_list_path=None):
+                 return_size = False, num_data_workers=0, limit_num_samples=None, answers_list_path=None,
+                 return_idx_answer_eoc = True):
         super().__init__()
         self.root = root
         self.batch_size = batch_size
@@ -174,6 +175,7 @@ class ImageCLEF2021DataModule(pl.LightningDataModule):
         self.num_data_workers = num_data_workers
         self.limit_num_samples = limit_num_samples
         self.answers_list_path = answers_list_path
+        self.return_idx_answer_eoc = return_idx_answer_eoc
 
         self.setup()
 
@@ -183,17 +185,20 @@ class ImageCLEF2021DataModule(pl.LightningDataModule):
                                           tokenizer=self.tokenizer,
                                           return_size=self.return_size,
                                           limit_num_samples=self.limit_num_samples,
-                                          answers_list_path=self.answers_list_path)
+                                          answers_list_path=self.answers_list_path,
+                                          return_idx_answer_eoc=self.return_idx_answer_eoc)
         self.val_dataset = MedLTDataset(root=self.root,mode='val',
                                         transform=self.transforms['val'],
                                         tokenizer=self.tokenizer, return_size=self.return_size,
                                         limit_num_samples=self.limit_num_samples,
-                                        answers_list_path=self.answers_list_path)
+                                        answers_list_path=self.answers_list_path,
+                                        return_idx_answer_eoc=self.return_idx_answer_eoc)
         self.test_dataset = MedLTDataset(root=self.root, mode='test',
                                          transform=self.transforms['test'],
                                          tokenizer=self.tokenizer, return_size=self.return_size,
                                         limit_num_samples=self.limit_num_samples,
-                                        answers_list_path=self.answers_list_path),
+                                        answers_list_path=self.answers_list_path,
+                                        return_idx_answer_eoc=self.return_idx_answer_eoc)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size,

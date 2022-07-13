@@ -1,4 +1,5 @@
 # Import comet_ml at the top of your file
+from email.policy import strict
 import comet_ml
 import sys 
 sys.path.append('..')
@@ -47,6 +48,7 @@ if __name__ == '__main__':
     BATCH_SIZE = 96
     NUM_EPOCHS = 60
     LIMIT_NUM_SAMPLES = None
+    DATASET = "IMAGECLEF"
 
     if os.getcwd().startswith('/home/mlmi-matthias'):
         ACCELERATOR = "gpu"
@@ -77,6 +79,7 @@ if __name__ == '__main__':
     IMAGE_TYPE = "jpg"
     TOKENIZER  = "gpt2"
     PREPROCESSED = True
+    RETURN_IDX_EOC = True
 
     dataset_hyperparameters = {
         "root": IMAGECLEF_PATH,
@@ -84,7 +87,8 @@ if __name__ == '__main__':
         "tokenizer": TOKENIZER,
         "return_size": False,
         "num_data_workers": NUM_DATA_WORKERS,
-        "answer_list_path": ANSWERS_LIST_PATH,
+        "answers_list_path": ANSWERS_LIST_PATH,
+        "return_idx_answer_eoc": RETURN_IDX_EOC
     }
 
 
@@ -113,6 +117,8 @@ if __name__ == '__main__':
     PERCEIVER_NUM_LATENTS = 64
     PERCEIVER_DEPTH = 2
     IMAGE_ENCODER = "clip"
+    CLASSIFICATION_MODE = True 
+    NUM_CLASSES = 332
 
 
     hyperparams = {
@@ -130,6 +136,8 @@ if __name__ == '__main__':
         'image_encoder': IMAGE_ENCODER,
         'language_model': LANGUAGE_MODEL,
         'pretrained_gpt2_path': PRETRAINED_GPT2_PATH,
+        'classification_mode': CLASSIFICATION_MODE,
+        'classification_num_classes': NUM_CLASSES  # 332 if DATASET=="IMAGECLEF"
     }
 
 
@@ -149,7 +157,7 @@ if __name__ == '__main__':
         if os.getcwd().startswith('/home/mlmi-matthias'):
             model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"])
         else:
-            model.load_state_dict(torch.load(CHECKPOINT_PATH,map_location=torch.device('cpu'))["state_dict"])
+            model.load_state_dict(torch.load(CHECKPOINT_PATH,map_location=torch.device('cpu'))["state_dict"],strict=False)
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
 

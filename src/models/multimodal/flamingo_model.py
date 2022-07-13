@@ -218,12 +218,14 @@ class FlamingoModel(nn.Module):
         only_attend_immediate_media=True,
         language_model="palm",
         img_encoder_outdim=512,
-        pretrained_gpt2_path=None
+        pretrained_gpt2_path=None,
+        classification_mode = False,
     ):
 
         super().__init__()
         self.num_tokens = num_tokens
         self.dim = dim
+        self.classification_mode = classification_mode
         self.token_emb = nn.Embedding(num_tokens, dim)
         self.media_token_id = (
             media_token_id  # you need to reserve a special token id for media
@@ -321,7 +323,7 @@ class FlamingoModel(nn.Module):
 
         self.train_embedding_layer=True
         self.flamingo_mode = True
-         # automatically take care of freezing or unfreezing depending on what is passed in
+            # automatically take care of freezing or unfreezing depending on what is passed in
         if self.flamingo_mode:
             # in flamingo mode, freeze everything but perceiver and gated cross attention
             freeze_all_layers_(self)
@@ -392,4 +394,7 @@ class FlamingoModel(nn.Module):
         if return_attn:
             return self.to_logits(text_tokens), attns
         else:
-            return self.to_logits(text_tokens)
+            if self.classification_mode:
+                return self.to_logits(text_tokens), text_tokens
+            else:
+                return self.to_logits(text_tokens)
