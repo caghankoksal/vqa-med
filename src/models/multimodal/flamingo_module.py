@@ -191,6 +191,15 @@ class FlamingoModule(pl.LightningModule):
             prog_bar=True,
             logger=True,
         )
+
+        self.log(
+            "train_total_loss",
+            train_loss + train_classification_loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+        )
         # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
         self.logger.experiment.add_scalars(
             "losses", {"train_loss": train_loss + train_classification_loss}, self.global_step
@@ -248,6 +257,15 @@ class FlamingoModule(pl.LightningModule):
             prog_bar=True,
             logger=True,
             sync_dist=True
+        )
+
+        self.log(
+            "val_total_loss",
+            val_loss + val_classification_loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
         )
         # comet_logs = {'val_loss': val_loss}
         # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)

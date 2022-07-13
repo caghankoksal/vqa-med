@@ -157,7 +157,7 @@ if __name__ == '__main__':
     if START_FROM_CHECKPOINT:
         print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
         if os.getcwd().startswith('/home/mlmi-matthias'):
-            model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"])
+            model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"],strict=False)
         else:
             model.load_state_dict(torch.load(CHECKPOINT_PATH,map_location=torch.device('cpu'))["state_dict"],strict=False)
 
@@ -172,7 +172,7 @@ if __name__ == '__main__':
                     monitor= 'val_loss',
                         save_top_k = 5)
 
-    early_stopping_callback = EarlyStopping(monitor="val_loss", mode="min",patience=5)
+    early_stopping_callback = EarlyStopping(monitor="val_total_loss", mode="min",patience=5)
     # All our models are trained using the AdamW optimizer with global norm clipping of 1
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
