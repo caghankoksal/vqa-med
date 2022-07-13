@@ -163,16 +163,18 @@ if __name__ == '__main__':
 
 
     from pytorch_lightning.callbacks import ModelCheckpoint
+    from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
     checkpoint_callback = ModelCheckpoint(
                 filename='{epoch}-{val_loss:.2f}-{other_metric:.2f}',
                     monitor= 'val_loss',
                         save_top_k = 5)
 
+    early_stopping_callback = EarlyStopping(monitor="val_loss", mode="min",patience=5)
     # All our models are trained using the AdamW optimizer with global norm clipping of 1
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
-                        callbacks=[lr_monitor, checkpoint_callback],
+                        callbacks=[lr_monitor, checkpoint_callback,early_stopping_callback],
                         gradient_clip_val=1.0)
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
