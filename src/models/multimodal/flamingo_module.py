@@ -195,7 +195,7 @@ class FlamingoModule(pl.LightningModule):
         # self.logger.experiment.add_scalar("train_loss", train_loss,self.global_step)
         # self.logger.experiment.add_scalar('lr', self.trainer.lr_schedulers[0]["scheduler"].get_lr()[0], self.global_step)
 
-        return {"loss": train_loss + classification_loss}
+        return {"loss": train_loss + train_classification_loss}
 
     def validation_step(self, batch, batch_idx):
         # val defined the training loop.
