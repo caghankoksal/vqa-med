@@ -168,8 +168,8 @@ if __name__ == '__main__':
     from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
     checkpoint_callback = ModelCheckpoint(
-                filename='{epoch}-{val_loss:.2f}-{other_metric:.2f}',
-                    monitor= 'val_loss',
+                filename='{epoch}-{val_total_loss:.2f}-{other_metric:.2f}',
+                    monitor= 'val_total_loss',
                         save_top_k = 5)
 
     early_stopping_callback = EarlyStopping(monitor="val_total_loss", mode="min",patience=5)
