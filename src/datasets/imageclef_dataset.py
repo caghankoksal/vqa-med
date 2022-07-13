@@ -85,7 +85,7 @@ class MedLTDataset(Dataset):
 
 
         if self.limit_num_samples:
-            imgs = imgs[:self.limit_num_samples]
+            self.imgs = self.imgs[:self.limit_num_samples]
 
 
     def __getitem__(self, item):
