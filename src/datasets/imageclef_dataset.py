@@ -38,7 +38,7 @@ class MedLTDataset(Dataset):
     def __init__(self,root = 'data/', path='test2021', mode='train', transform=None,
                  return_size=False,tokenizer='scibert', tokenizer_add_special_tokens=True,
                  token_max_len=128, limit_num_samples=None, tokenizer_type='gpt2',
-                 return_idx_answer_eoc=True):
+                 return_idx_answer_eoc=True, answers_list_path="answer_list_imageclef.txt"):
         self.mode = mode
         self.transform = transform
         self.return_size = return_size
@@ -47,6 +47,7 @@ class MedLTDataset(Dataset):
         self.tokenizer_type = tokenizer_type
         self.limit_num_samples = limit_num_samples
         self.return_idx_answer_eoc = return_idx_answer_eoc
+        self.answers_list_path = answers_list_path
 
         if mode == 'train':
             imgs = make_dataset(root+mode)
@@ -87,11 +88,24 @@ class MedLTDataset(Dataset):
         if self.limit_num_samples:
             self.imgs = self.imgs[:self.limit_num_samples]
 
+        # Create answers dictionary
+        with open(answers_list_path, "r") as f:
+            lines = f.readlines()
+            lines = [each.strip() for each in lines]
+            answer_list= lines
+
+        # Create a dictionary of answers
+        self.answer_to_label = {}
+        self.label_to_answer = {}
+        for i,ans in enumerate(answer_list):
+            self.answer_to_label[ans] = i
+            self.label_to_answer[i] = ans
 
     def __getitem__(self, item):
         if  self.mode != 'test':
             image_name, question, answer = self.imgs[item]
             image_path = self.root + self.mode + '/images/' + image_name + '.jpg'
+            label = self.answer_to_label[answer]
         else:
             image_name, question = self.imgs[item]
             image_path = self.root + self.path + '/images/' + image_name + '.jpg'
@@ -102,8 +116,8 @@ class MedLTDataset(Dataset):
 
         w, h = image.size
         size = (h, w)
-        if not self.mode == 'test':
-            sample = {'image': image, 'question': question, 'answer': answer}
+        if  self.mode != 'test':
+            sample = {'image': image, 'question': question, 'answer': answer, 'label': label}
         else:
             sample = {'image': image, 'question': question}
 
@@ -150,7 +164,7 @@ class MedLTDataset(Dataset):
 
 class ImageCLEF2021DataModule(pl.LightningDataModule):
     def __init__(self, root='data', batch_size: int = 32, transforms=None, tokenizer:str ='gpt2',
-                 return_size = False, num_data_workers=0, limit_num_samples=None):
+                 return_size = False, num_data_workers=0, limit_num_samples=None, answers_list_path=None):
         super().__init__()
         self.root = root
         self.batch_size = batch_size
@@ -159,6 +173,7 @@ class ImageCLEF2021DataModule(pl.LightningDataModule):
         self.return_size = return_size
         self.num_data_workers = num_data_workers
         self.limit_num_samples = limit_num_samples
+        self.answers_list_path = answers_list_path
 
         self.setup()
 
@@ -167,15 +182,18 @@ class ImageCLEF2021DataModule(pl.LightningDataModule):
                                           transform=self.transforms['train'],
                                           tokenizer=self.tokenizer,
                                           return_size=self.return_size,
-                                          limit_num_samples=self.limit_num_samples)
+                                          limit_num_samples=self.limit_num_samples,
+                                          answers_list_path=self.answers_list_path)
         self.val_dataset = MedLTDataset(root=self.root,mode='val',
                                         transform=self.transforms['val'],
                                         tokenizer=self.tokenizer, return_size=self.return_size,
-                                        limit_num_samples=self.limit_num_samples)
+                                        limit_num_samples=self.limit_num_samples,
+                                        answers_list_path=self.answers_list_path)
         self.test_dataset = MedLTDataset(root=self.root, mode='test',
                                          transform=self.transforms['test'],
                                          tokenizer=self.tokenizer, return_size=self.return_size,
-                                        limit_num_samples=self.limit_num_samples)
+                                        limit_num_samples=self.limit_num_samples,
+                                        answers_list_path=self.answers_list_path),
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
