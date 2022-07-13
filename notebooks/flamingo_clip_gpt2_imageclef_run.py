@@ -119,6 +119,7 @@ if __name__ == '__main__':
     IMAGE_ENCODER = "clip"
     CLASSIFICATION_MODE = True 
     NUM_CLASSES = 332
+    FLAMINGO_MODE = True
 
 
     hyperparams = {
@@ -137,7 +138,8 @@ if __name__ == '__main__':
         'language_model': LANGUAGE_MODEL,
         'pretrained_gpt2_path': PRETRAINED_GPT2_PATH,
         'classification_mode': CLASSIFICATION_MODE,
-        'classification_num_classes': NUM_CLASSES  # 332 if DATASET=="IMAGECLEF"
+        'classification_num_classes': NUM_CLASSES,  # 332 if DATASET=="IMAGECLEF"
+        'flamingo_mode': FLAMINGO_MODE
     }
 
 

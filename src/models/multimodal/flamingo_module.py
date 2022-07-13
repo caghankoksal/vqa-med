@@ -33,7 +33,8 @@ class FlamingoModule(pl.LightningModule):
         language_model="gpt2",
         pretrained_gpt2_path=None,
         classification_mode=True,
-        classification_num_classes = 332
+        classification_num_classes = 332,
+        flamingo_mode = True
     ):
 
         super().__init__()
@@ -43,6 +44,7 @@ class FlamingoModule(pl.LightningModule):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.classification_mode= classification_mode
         self.num_classification_classes = classification_num_classes
+        self.flamingo_mode = flamingo_mode
 
         if image_encoder == "clip" and pretrained_clip_path is not None:
             print("Pretrained clip is being loaded")
@@ -102,6 +104,7 @@ class FlamingoModule(pl.LightningModule):
             img_encoder_outdim=self.img_encoder_outdim,
             pretrained_gpt2_path=pretrained_gpt2_path,
             classification_mode = self.classification_mode,
+            flamingo_mode = self.flamingo_mode
         )
 
         if self.classification_mode:
