@@ -123,7 +123,7 @@ if __name__ == '__main__':
 
     hyperparams = {
         'pretrained_clip_path': PRETRAINED_CLIP_PATH,
-        'warmup_steps': 10,
+        'warmup_steps': 30,
         'num_tokens': NUM_TOKENS,
         'dim': FLAMINGO_EMBED_DIM,
         'depth': DEPTH,
@@ -169,8 +169,10 @@ if __name__ == '__main__':
                     monitor= 'val_loss',
                         save_top_k = 5)
 
+    # All our models are trained using the AdamW optimizer with global norm clipping of 1
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
-                        callbacks=[lr_monitor, checkpoint_callback])
+                        callbacks=[lr_monitor, checkpoint_callback],
+                        gradient_clip_val=1.0)
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
