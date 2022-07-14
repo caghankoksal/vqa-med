@@ -112,7 +112,7 @@ class FlamingoModule(pl.LightningModule):
         if self.classification_mode:
             #self.classifier = nn.Linear(dim,self.num_classification_classes )
             #nn.init.normal_(self.classifier.weight, std=0.01)
-            nn.Sequential(
+            self.classifier = nn.Sequential(
                 nn.Linear(dim, 4096),
                 nn.ReLU(True),
                 nn.Dropout(),
