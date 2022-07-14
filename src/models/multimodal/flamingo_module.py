@@ -110,8 +110,17 @@ class FlamingoModule(pl.LightningModule):
         )
 
         if self.classification_mode:
-            self.classifier = nn.Linear(dim, self.num_classification_classes)
-            nn.init.normal_(self.classifier.weight, std=0.01)
+            #self.classifier = nn.Linear(dim,self.num_classification_classes )
+            #nn.init.normal_(self.classifier.weight, std=0.01)
+            nn.Sequential(
+                nn.Linear(dim, 4096),
+                nn.ReLU(True),
+                nn.Dropout(),
+                nn.Linear(4096, 4096),
+                nn.ReLU(True),
+                nn.Dropout(),
+                nn.Linear(4096, self.num_classification_classes)
+            )
 
     def forward(self, x, return_attn=False):
         # in lightning, forward defines the prediction/inference actions
