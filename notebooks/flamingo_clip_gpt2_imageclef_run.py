@@ -1,5 +1,4 @@
 # Import comet_ml at the top of your file
-from email.policy import strict
 import comet_ml
 import sys 
 sys.path.append('..')
@@ -7,16 +6,18 @@ sys.path.append('..')
 import os
 import pytorch_lightning as pl
 from src.models.multimodal.flamingo_module import FlamingoModule
+from src.datasets.imageclef_dataset import ImageCLEF2021DataModule
+from src.utils.utils import load_flamingo_weights, print_hyperparams
 
 from pytorch_lightning import Trainer, seed_everything
 import torchvision.transforms as T
-
 from pytorch_lightning.loggers import CometLogger
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning import loggers as pl_loggers
-
-from src.datasets.imageclef_dataset import ImageCLEF2021DataModule
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 import torch
+
 
 if __name__ == '__main__':
     # sets seeds for numpy, torch, python.random and PYTHONHASHSEED.
@@ -142,30 +143,26 @@ if __name__ == '__main__':
         'flamingo_mode': FLAMINGO_MODE
     }
 
-
-    def print_hyperparams(hparams):
-        for k,v in hparams.items():
-            print(k,v)
-
     print_hyperparams(hyperparams)
-
 
     model = FlamingoModule(**hyperparams)
     
     START_FROM_CHECKPOINT = True
 
     if START_FROM_CHECKPOINT:
-        print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
-        if os.getcwd().startswith('/home/mlmi-matthias'):
-            model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"],strict=False)
+        if NUM_TOKENS == 50261:
+            print("Flamingo weights are loading from checkpoint with 50261 tokens")
+            load_flamingo_weights(model, CHECKPOINT_PATH)
         else:
-            model.load_state_dict(torch.load(CHECKPOINT_PATH,map_location=torch.device('cpu'))["state_dict"],strict=False)
+            print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
+            if os.getcwd().startswith('/home/mlmi-matthias'):
+                model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"],strict=False)
+            else:
+                model.load_state_dict(torch.load(CHECKPOINT_PATH,map_location=torch.device('cpu'))["state_dict"],strict=False)
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
 
 
-    from pytorch_lightning.callbacks import ModelCheckpoint
-    from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
     checkpoint_callback = ModelCheckpoint(
                 filename='{epoch}-{val_total_loss:.2f}-{other_metric:.2f}',
@@ -173,6 +170,7 @@ if __name__ == '__main__':
                         save_top_k = 5)
 
     early_stopping_callback = EarlyStopping(monitor="val_total_loss", mode="min",patience=5)
+    
     # All our models are trained using the AdamW optimizer with global norm clipping of 1
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
