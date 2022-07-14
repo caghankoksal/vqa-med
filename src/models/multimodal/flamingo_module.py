@@ -139,7 +139,6 @@ class FlamingoModule(pl.LightningModule):
                 flamingo_logits, token_embeds = self.flamingo_palm(
                     input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn
                 )
-                print("Token embeds shape: ", token_embeds.shape)
 
                 classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
                 classification_logits = torch.softmax(classification_logits, dim=1)
@@ -172,12 +171,6 @@ class FlamingoModule(pl.LightningModule):
             input_tokens.squeeze(1), images.unsqueeze(1)
         )
 
-        # Classification Loss
-        if self.classification_mode:
-            train_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
-        
-
-
         train_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.label_smoothing)(
             torch.permute(flamingo_logits, (0, 2, 1)), targets.squeeze(1)
         )
@@ -196,31 +189,45 @@ class FlamingoModule(pl.LightningModule):
             prog_bar=True,
             logger=True,
         )
-        self.log(
-            "train_classification_loss",
-            train_classification_loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-        )
+                # Classification Loss
+        if self.classification_mode:
+            train_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
 
-        self.log(
-            "train_total_loss",
-            train_loss + train_classification_loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-        )
-        # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
-        self.logger.experiment.add_scalars(
-            "losses", {"train_loss": train_loss + train_classification_loss}, self.global_step
-        )
-        # self.logger.experiment.add_scalar("train_loss", train_loss,self.global_step)
-        # self.logger.experiment.add_scalar('lr', self.trainer.lr_schedulers[0]["scheduler"].get_lr()[0], self.global_step)
+            self.log(
+                "train_classification_loss",
+                train_classification_loss,
+                on_step=True,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+            )
 
-        return {"loss": train_loss + train_classification_loss}
+            self.log(
+                "train_total_loss",
+                train_loss + train_classification_loss,
+                on_step=True,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+            )
+            # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
+            self.logger.experiment.add_scalars(
+                "losses", {"train_loss": train_loss + train_classification_loss}, self.global_step
+            )
+            # self.logger.experiment.add_scalar("train_loss", train_loss,self.global_step)
+            # self.logger.experiment.add_scalar('lr', self.trainer.lr_schedulers[0]["scheduler"].get_lr()[0], self.global_step)
+
+            return {"loss": train_loss + train_classification_loss}
+        
+        else:
+            self.logger.experiment.add_scalars(
+                "losses", {"train_loss": train_loss}, self.global_step
+            )
+
+            return {"loss": train_loss}
+
+
+
 
     def validation_step(self, batch, batch_idx):
         # val defined the training loop.
@@ -242,9 +249,7 @@ class FlamingoModule(pl.LightningModule):
             input_tokens.squeeze(1), images.unsqueeze(1)
         )
 
-        # Classification Loss
-        if self.classification_mode:
-            val_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
+
 
         val_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.label_smoothing)(
             torch.permute(flamingo_logits, (0, 2, 1)), targets.squeeze(1)
@@ -262,33 +267,13 @@ class FlamingoModule(pl.LightningModule):
             logger=True,
             sync_dist=True
         )
-        self.log(
-            "val_classification_loss",
-            val_classification_loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-            sync_dist=True
-        )
-
-        self.log(
-            "val_total_loss",
-            val_loss + val_classification_loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-        )
-
-        # Calculate validation accuracy
         if self.classification_mode:
-            val_acc = (
-                torch.argmax(classification_logits, dim=1) == class_labels
-            ).float().mean()
+                    # Classification Loss
+            val_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
+
             self.log(
-                "val_acc",
-                val_acc,
+                "val_classification_loss",
+                val_classification_loss,
                 on_step=True,
                 on_epoch=True,
                 prog_bar=True,
@@ -296,13 +281,40 @@ class FlamingoModule(pl.LightningModule):
                 sync_dist=True
             )
 
-        # comet_logs = {'val_loss': val_loss}
-        # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
-        # self.logger.experiment.add_scalar("val_loss", val_loss,self.global_step)
-        self.logger.experiment.add_scalars(
-            "losses", {"validation_loss": val_loss+ val_classification_loss}, self.global_step
-        )
-        return {"val_loss": val_loss + val_classification_loss}
+            self.log(
+                "val_total_loss",
+                val_loss + val_classification_loss,
+                on_step=True,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+            )
+            # Calculate validation accuracy
+            if self.classification_mode:
+                val_acc = (torch.argmax(classification_logits, dim=1) == class_labels).float().mean()
+                self.log(
+                    "val_acc",
+                    val_acc,
+                    on_step=True,
+                    on_epoch=True,
+                    prog_bar=True,
+                    logger=True,
+                    sync_dist=True
+                )
+
+            self.logger.experiment.add_scalars(
+                "losses", {"validation_loss": val_loss+ val_classification_loss}, self.global_step
+            )
+            return {"val_loss": val_loss + val_classification_loss}
+
+        else:
+            self.logger.experiment.add_scalars(
+                "losses", {"validation_loss": val_loss}, self.global_step
+            )
+            return {"val_loss": val_loss}
+
+
+        
 
     def  predict_step(self, batch, batch_idx):
         # val defined the training loop.
