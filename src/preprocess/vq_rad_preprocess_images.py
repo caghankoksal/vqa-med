@@ -9,16 +9,16 @@ from pathlib import Path
 from tqdm import tqdm
 from multiprocessing import Process, Manager
 
-paths = Path('/home/mlmi-matthias/Data')
-with open(paths / 'vqa_rad_chest_xrays.pkl', 'rb') as f:
-        jsons = pkl.load(f)
+path = Path('/home/mlmi-matthias/VQA-RAD')
+output_folder_path = Path('/home/mlmi-matthias/VQA-RAD/images_preprocessed')
 
-output_folder_path = Path('/home/mlmi-matthias/Data/VQA_RAD_preprocessed')
+with open(path / 'VQA-RAD_public.json', 'r') as f:
+        jsons = json.load(f)
 
-result = []
+print(f'len images: {len(jsons)}')
 
 for json_sample in tqdm(jsons):
-    image_path = json_sample['image_path']
+    image_path = path / 'images' / json_sample['image_name']
 
     # resize image
     cur_img = Image.open(image_path)
@@ -31,9 +31,3 @@ for json_sample in tqdm(jsons):
 
     # change image path in json
     json_sample['image_path'] = str(output_folder_path / json_sample['image_name'])
-    result.append(json_sample)
-
-# store the jsons again in the preprocessed
-output_path = Path('/home/mlmi-matthias/Data/VQA_RAD_preprocessed')
-with open(output_path / 'vqa_rad_chest_paths.pkl', 'wb') as f:
-        pkl.dump(result, f, pkl.DEFAULT_PROTOCOL)

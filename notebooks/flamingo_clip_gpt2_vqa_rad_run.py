@@ -45,15 +45,15 @@ transforms = {'train':
 # Hyperparameters
 NUM_DATA_WORKERS  = 8
 ONLY_IMAGES = False
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 NUM_EPOCHS = 80
 LIMIT_NUM_SAMPLES = None
 
 ACCELERATOR = "gpu"
-DEVICES = [1]
+DEVICES = [6]
 # ACCELERATOR = "cpu"
 # DEVICES = 1
-DATASET_ROOT = '/home/mlmi-matthias/Data/VQA_RAD_preprocessed/'
+DATASET_ROOT = '/home/mlmi-matthias/VQA-RAD'
 PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
 PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
 
@@ -63,7 +63,7 @@ IMAGE_TYPE = "jpg"
 SHUFFLE = True
 TOKENIZER  = "gpt2"
 LOAD_IN_MEM = True
-PREPROCESSED = True
+PREPROCESSED = False
 
 mimic_datamodule = VQRadDataModule(
                                 batch_size=BATCH_SIZE, transforms=transforms, root=DATASET_ROOT,
@@ -81,7 +81,7 @@ print("Total training steps : ", len(mimic_datamodule.train_dataset)//BATCH_SIZE
 
 
 # MODEL HPRAMS
-VOCAB_SIZE_OF_TOKENIZER = 50257 # mimic_datamodule.train_dataset.tokenizer.vocab_size
+VOCAB_SIZE_OF_TOKENIZER = 50258 # mimic_datamodule.train_dataset.tokenizer.vocab_size
 LANGUAGE_MODEL = 'gpt2'
 NUM_TOKENS = VOCAB_SIZE_OF_TOKENIZER +3 if LANGUAGE_MODEL=="gpt2" else 31092
 FLAMINGO_EMBED_DIM = 768
@@ -147,10 +147,14 @@ checkpoint_callback = ModelCheckpoint(
                 monitor= 'val_loss',
                     save_top_k = 10)
 
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+early_stopping_callback = EarlyStopping(monitor="val_loss", mode="min",patience=5)
+
+
 # from pytorch_lightning.strategies import DDPStrategy
 trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                     accelerator=ACCELERATOR, devices=DEVICES,
-                    callbacks=[lr_monitor, checkpoint_callback],
+                    callbacks=[lr_monitor, checkpoint_callback, early_stopping_callback],
                     # strategy=DDPStrategy(find_unused_parameters=False)
                     )
 

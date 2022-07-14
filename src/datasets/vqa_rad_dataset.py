@@ -40,8 +40,11 @@ class VQARadDataset(Dataset):
             self.data_images = {}
             print(f'Loading all images into memory... for {mode}')
 
-            files = glob(root + '/*.jpg')
-            
+            if preprocessed == True:
+                files = glob(root + '/*.jpg')
+            else:
+                files = glob(os.path.join(root, '/images_preprocessed/*.jpg'))
+
             for file in files:
                 in_file = open(file, 'rb')
                 img = self.jpeg.decode(in_file.read())
@@ -66,7 +69,7 @@ class VQARadDataset(Dataset):
             self.tokenizer = None
 
         if tokenizer_add_special_tokens:
-            special_tokens_dict = {'additional_special_tokens': ['<image>', '<EOC>']}
+            special_tokens_dict = {'additional_special_tokens': ['<image>', '<EOC>', '<EOQ>']}
             # Set the beginning of sentence token to <BOS>
             #self.tokenizer.bos_token = '<BOS>'
             num_added_toks = self.tokenizer.add_special_tokens(special_tokens_dict)
@@ -88,7 +91,7 @@ class VQARadDataset(Dataset):
         if self.load_in_memory:
             img = self.data_images[image_name]
         else:
-            in_file = open(cur_sample['image_path'], 'rb')
+            in_file = open(os.path.join(self.root,'images_preprocessed',cur_sample['image_name']), 'rb')
             img = self.jpeg.decode(in_file.read())
             img = Image.fromarray(img)
             in_file.close()
@@ -100,9 +103,9 @@ class VQARadDataset(Dataset):
 
         # Put image at the beginning of the question
         if self.mode == "test":
-            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + question + ' Answer: '
+            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + '<EOQ>' + question + ' Answer: '
         else:
-            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + question + ' Answer: ' + answer + ' <EOC>'
+            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + '<EOQ>' + question + ' Answer: ' + answer + ' <EOC>'
 
         input_encoding = self.tokenizer.encode_plus(text, padding='max_length', truncation=True, max_length=self.token_max_len, return_tensors="pt")
 
@@ -143,10 +146,17 @@ class VQRadDataModule(pl.LightningDataModule):
         self.preprocessed = preprocessed
         self.load_in_memory = load_in_memory
 
-        # read preprocessed QAs and images
-        with open(root + 'vqa_rad_chest_paths.pkl', 'rb') as f:
-            self.sample_dicts = pkl.load(f)
-        
+        if preprocessed == True:
+            # read preprocessed QAs and images
+            with open(root + 'vqa_rad_chest_paths.pkl', 'rb') as f:
+                self.sample_dicts = pkl.load(f)
+        else:
+            with open(os.path.join(root,'VQA-RAD_public.json'), 'r') as f:
+                self.sample_dicts = json.load(f)
+
+
+        print(f'There are {len(self.sample_dicts)} QA pairs in VQA-RAD dataset')
+
         # only use 90% for train-val, 10% is always test
         # from which train is 80% and val is 20%
         train_test_split = int(0.9 * len(self.sample_dicts))
