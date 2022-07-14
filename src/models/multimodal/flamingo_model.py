@@ -221,6 +221,7 @@ class FlamingoModel(nn.Module):
         pretrained_gpt2_path=None,
         classification_mode = False,
         flamingo_mode = True,
+        context_size = 256
     ):
 
         super().__init__()
@@ -228,6 +229,8 @@ class FlamingoModel(nn.Module):
         self.dim = dim
         self.classification_mode = classification_mode
         self.token_emb = nn.Embedding(num_tokens, dim)
+        self.wpe = nn.Embedding(context_size, dim)
+        self.drop = nn.Dropout(0.1)
         self.media_token_id = (
             media_token_id  # you need to reserve a special token id for media
         )
@@ -344,6 +347,8 @@ class FlamingoModel(nn.Module):
         if self.train_embedding_layer:
             unfreeze_all_layers_(self.token_emb)
 
+        # Learned input positional embeddings
+        unfreeze_all_layers_(self.wpe)
 
 
     def forward(self, text, images=None, image_embeds=None, return_attn=False):
@@ -352,7 +357,10 @@ class FlamingoModel(nn.Module):
         # derive the media token ids (as a boolean tensor), for calculating the masked cross attention
 
         media_locations = text == self.media_token_id
+
+        pos_ids = torch.arange(0, text.size(-1)).unsqueeze(0)
         text_tokens = self.token_emb(text)
+        text_tokens = self.drop(text_tokens + self.wpe(pos_ids))
 
         assert not (exists(images) and exists(image_embeds))
 
