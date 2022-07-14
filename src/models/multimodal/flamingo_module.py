@@ -34,7 +34,8 @@ class FlamingoModule(pl.LightningModule):
         pretrained_gpt2_path=None,
         classification_mode=True,
         classification_num_classes = 332,
-        flamingo_mode = True
+        flamingo_mode = True,
+        label_smoothing = 0.1,
     ):
 
         super().__init__()
@@ -45,6 +46,7 @@ class FlamingoModule(pl.LightningModule):
         self.classification_mode= classification_mode
         self.num_classification_classes = classification_num_classes
         self.flamingo_mode = flamingo_mode
+        self.label_smoothing = label_smoothing
 
         if image_encoder == "clip" and pretrained_clip_path is not None:
             print("Pretrained clip is being loaded")
@@ -167,7 +169,7 @@ class FlamingoModule(pl.LightningModule):
         
 
 
-        train_loss = nn.CrossEntropyLoss(reduction="none")(
+        train_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.label_smoothing)(
             torch.permute(flamingo_logits, (0, 2, 1)), targets.squeeze(1)
         )
         # Only non pad tokens are considered in the loss
@@ -235,7 +237,7 @@ class FlamingoModule(pl.LightningModule):
         if self.classification_mode:
             val_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
 
-        val_loss = nn.CrossEntropyLoss(reduction="none")(
+        val_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.label_smoothing)(
             torch.permute(flamingo_logits, (0, 2, 1)), targets.squeeze(1)
         )
         val_loss = torch.sum(val_loss * batch["token_type_ids"]) / (
@@ -308,12 +310,13 @@ class FlamingoModule(pl.LightningModule):
                 input_tokens.squeeze(1), images.unsqueeze(1)
             )
             classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
+            return flamingo_logits, classification_logits
         else:
             flamingo_logits = self.flamingo_palm(
             input_tokens.squeeze(1), images.unsqueeze(1)
-        )
+            )
+            return flamingo_logits
 
-    
 
 
     def configure_optimizers(self):

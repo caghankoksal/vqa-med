@@ -121,6 +121,7 @@ if __name__ == '__main__':
     CLASSIFICATION_MODE = True 
     NUM_CLASSES = 332
     FLAMINGO_MODE = True
+    LABEL_SMOOTHING = 0.1
 
 
     hyperparams = {
@@ -140,7 +141,8 @@ if __name__ == '__main__':
         'pretrained_gpt2_path': PRETRAINED_GPT2_PATH,
         'classification_mode': CLASSIFICATION_MODE,
         'classification_num_classes': NUM_CLASSES,  # 332 if DATASET=="IMAGECLEF"
-        'flamingo_mode': FLAMINGO_MODE
+        'flamingo_mode': FLAMINGO_MODE,
+        "label_smoothing": LABEL_SMOOTHING
     }
 
     print_hyperparams(hyperparams)
@@ -170,7 +172,7 @@ if __name__ == '__main__':
                         save_top_k = 5)
 
     early_stopping_callback = EarlyStopping(monitor="val_total_loss", mode="min",patience=5)
-    
+
     # All our models are trained using the AdamW optimizer with global norm clipping of 1
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
