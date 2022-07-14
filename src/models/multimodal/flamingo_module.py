@@ -115,7 +115,7 @@ class FlamingoModule(pl.LightningModule):
         # in lightning, forward defines the prediction/inference actions
         images = x["image"]
         input_tokens = x["input_ids"]
-        index_eoc = x["index_eoc"]
+        index_eoq = x["index_eoq"]
         batch_size = images.shape[0]
         
         if return_attn:
@@ -128,7 +128,9 @@ class FlamingoModule(pl.LightningModule):
                 flamingo_logits, token_embeds = self.flamingo_palm(
                     input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn
                 )
-                classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoc])
+                print("Token embeds shape: ", token_embeds.shape)
+
+                classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
                 classification_logits = torch.softmax(classification_logits, dim=1)
 
                 return flamingo_logits, classification_logits
@@ -144,7 +146,7 @@ class FlamingoModule(pl.LightningModule):
         images = batch["image"]
         input_tokens = batch["input_ids"]
         targets = batch["targets"]
-        index_eoc = batch["index_eoc"]
+        index_eoq = batch["index_eoq"]
         class_labels = batch["label"]
         batch_size = images.shape[0]
 
@@ -153,7 +155,7 @@ class FlamingoModule(pl.LightningModule):
             flamingo_logits, token_embeds = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1)
             )
-            classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoc])
+            classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
         else:
             flamingo_logits = self.flamingo_palm(
             input_tokens.squeeze(1), images.unsqueeze(1)
@@ -215,7 +217,7 @@ class FlamingoModule(pl.LightningModule):
         images = batch["image"]
         input_tokens = batch["input_ids"]
         targets = batch["targets"]
-        index_eoc = batch["index_eoc"]
+        index_eoq = batch["index_eoq"]
         class_labels = batch["label"]
         batch_size = images.shape[0]
 
@@ -223,7 +225,7 @@ class FlamingoModule(pl.LightningModule):
             flamingo_logits, token_embeds = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1)
             )
-            classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoc])
+            classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
         else:
             flamingo_logits = self.flamingo_palm(
             input_tokens.squeeze(1), images.unsqueeze(1)
@@ -291,6 +293,27 @@ class FlamingoModule(pl.LightningModule):
         )
         return {"val_loss": val_loss + val_classification_loss}
 
+    def  predict_step(self, batch, batch_idx):
+        # val defined the training loop.
+        # It is independent of forward
+        images = batch["image"]
+        input_tokens = batch["input_ids"]
+        targets = batch["targets"]
+        index_eoq = batch["index_eoq"]
+        class_labels = batch["label"]
+        batch_size = images.shape[0]
+
+        if self.classification_mode:
+            flamingo_logits, token_embeds = self.flamingo_palm(
+                input_tokens.squeeze(1), images.unsqueeze(1)
+            )
+            classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
+        else:
+            flamingo_logits = self.flamingo_palm(
+            input_tokens.squeeze(1), images.unsqueeze(1)
+        )
+
+    
 
 
     def configure_optimizers(self):

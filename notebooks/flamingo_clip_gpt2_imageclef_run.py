@@ -106,7 +106,7 @@ if __name__ == '__main__':
     # MODEL HPRAMS
     VOCAB_SIZE_OF_TOKENIZER = 50257 # mimic_datamodule.train_dataset.tokenizer.vocab_size
     LANGUAGE_MODEL = 'gpt2'
-    NUM_TOKENS = VOCAB_SIZE_OF_TOKENIZER +3 if LANGUAGE_MODEL=="gpt2" else 31092
+    NUM_TOKENS = VOCAB_SIZE_OF_TOKENIZER +4 if LANGUAGE_MODEL=="gpt2" else 31092
     FLAMINGO_EMBED_DIM = 768
     DEPTH = 12
     NUM_HEADS = 8

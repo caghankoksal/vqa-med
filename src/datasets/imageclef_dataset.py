@@ -79,7 +79,7 @@ class MedLTDataset(Dataset):
             self.tokenizer = None
 
         if tokenizer_add_special_tokens:
-            special_tokens_dict = {'additional_special_tokens': ['<image>', '<EOC>']}
+            special_tokens_dict = {'additional_special_tokens': ['<image>', '<EOC>','<EOQ>']}
             # Set the beginning of sentence token to <BOS>
             #self.tokenizer.bos_token = '<BOS>'
             num_added_toks = self.tokenizer.add_special_tokens(special_tokens_dict)
@@ -130,7 +130,7 @@ class MedLTDataset(Dataset):
         
         # Put image at the beginning of the explanation
         question_answer_pair = self.tokenizer.bos_token + ' ' + '<image> ' + 'question: ' + sample["question"] +\
-                                ' answer: '+sample["answer"] + ' <EOC>'
+                                ' <EOQ>' +' answer: '+sample["answer"] + ' <EOC>'
         encoding = self.tokenizer.encode_plus(question_answer_pair, padding='max_length', truncation=True,
                                               max_length=self.token_max_len, return_tensors="pt")
 
@@ -146,10 +146,13 @@ class MedLTDataset(Dataset):
         targets = torch.cat( ( input_ids[:,1:], torch.tensor([pad_token_id]).unsqueeze(1) ), dim=1)
 
         if self.return_idx_answer_eoc:
+            # 3280 is the index of the : token since we use Answer: 
             index_of_answer = (input_ids==3280).nonzero()[0][-1].item()
             index_of_eoc = (input_ids==50259).nonzero()[0][-1].item()
+            index_of_eoq = (input_ids==50260).nonzero()[0][-1].item()
             sample["index_answer"] = index_of_answer
             sample["index_eoc"] = index_of_eoc
+            sample["index_eoq"] = index_of_eoq
 
         sample["input_ids"] = input_ids
         sample["token_type_ids"] = token_type_ids
