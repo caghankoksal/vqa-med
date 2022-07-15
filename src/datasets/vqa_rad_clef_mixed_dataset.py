@@ -45,6 +45,8 @@ class RAD_CLEF_Mixed_DataModule(pl.LightningDataModule):
             transform=self.transforms['train'],
             limit_num_samples=self.limit_num_samples
         )
+
+        print("CLEF data length", len(self.train_dataset_CLEF))
         
         self.val_dataset_CLEF = MedLTDataset(
             root=CLEF_DATASET_ROOT,
@@ -73,6 +75,8 @@ class RAD_CLEF_Mixed_DataModule(pl.LightningDataModule):
             preprocessed = None,
             load_in_memory = False
         )
+
+        print("RAD data length", len(self.train_dataset_RAD))
 
         self.val_dataset_RAD = VQARadDataset(
             root=RAD_DATASET_ROOT,
@@ -158,7 +162,11 @@ class RAD_CLEF_Mixed_Dataset(Dataset):
 
     def __len__(self):
         # since we do balancing of the two datasets, each dataset is drawn from the same amount of times
-        return max(max(self.RAD_Dataset.__len__(), self.CLEF_Dataset.__len__()) * 2, self.limit_num_samples)
+        balancedNumber = max(self.RAD_Dataset.__len__(), self.CLEF_Dataset.__len__()) * 2
+        if self.limit_num_samples:
+            return min(balancedNumber, self.limit_num_samples)
+        else:
+            return balancedNumber
 
 
 
@@ -181,12 +189,15 @@ class VQARadDataset(Dataset):
 
         self.allannotations = json.load(open(os.path.join(root, "VQA-RAD_public.json")))
 
+        trainCut, valCut = round(len(self.allannotations) * 0.7), round(len(self.allannotations) * 0.9)
         if mode == "train":
-            self.annotations = self.allannotations[: len(self.allannotations) * 70]
+            self.annotations = self.allannotations[: trainCut]
         elif mode == "val":
-            self.annotations = self.allannotations[len(self.allannotations) * 70 : len(self.allannotations) * 90]
+            self.annotations = self.allannotations[trainCut : valCut]
         elif mode == "test":
-            self.annotations = self.allannotations[len(self.allannotations) * 90 :]
+            self.annotations = self.allannotations[trainCut :]
+        else:
+            raise Exception("either train, val or test")
 
 
 
@@ -218,9 +229,9 @@ class VQARadDataset(Dataset):
 
         # Put image at the beginning of the question
         if self.mode == "test":
-            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + question + ' Answer: '
+            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + str(question) + ' Answer: '
         else:
-            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + question + ' Answer: ' + answer + ' <EOC>'
+            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + str(question) + ' Answer: ' + str(answer) + ' <EOC>'
 
         input_encoding = self.tokenizer.encode_plus(text, padding='max_length', truncation=True, max_length=self.token_max_len, return_tensors="pt")
 
@@ -298,7 +309,7 @@ class MedLTDataset(Dataset):
 
 
         if self.limit_num_samples:
-            imgs = imgs[:self.limit_num_samples]
+            self.imgs = self.imgs[:self.limit_num_samples]
 
 
     def __getitem__(self, item):
@@ -331,8 +342,8 @@ class MedLTDataset(Dataset):
 
         
         # Put image at the beginning of the explanation
-        question_answer_pair = self.tokenizer.bos_token + ' ' + '<image> ' + 'question: ' + sample["question"] +\
-                                ' answer: '+sample["answer"] + ' <EOC>'
+        question_answer_pair = self.tokenizer.bos_token + ' ' + '<image> ' + 'question: ' + str(sample["question"]) +\
+                                ' answer: ' + str(sample["answer"]) + ' <EOC>'
         encoding = self.tokenizer.encode_plus(question_answer_pair, padding='max_length', truncation=True,
                                               max_length=self.token_max_len, return_tensors="pt")
 
