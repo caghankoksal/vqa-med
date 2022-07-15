@@ -358,7 +358,7 @@ class FlamingoModel(nn.Module):
 
         media_locations = text == self.media_token_id
 
-        pos_ids = torch.arange(0, text.size(-1)).unsqueeze(0)
+        pos_ids = torch.arange(0, text.size(-1),device=device).unsqueeze(0)
         text_tokens = self.token_emb(text)
         text_tokens = self.drop(text_tokens + self.wpe(pos_ids))
 
