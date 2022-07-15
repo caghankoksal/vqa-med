@@ -155,11 +155,11 @@ class FlamingoModule(pl.LightningModule):
         images = batch["image"]
         input_tokens = batch["input_ids"]
         targets = batch["targets"]
-        class_labels = batch["label"]
         batch_size = images.shape[0]
 
         
         if self.classification_mode:
+            class_labels = batch["label"]
             index_eoq = batch["index_eoq"]
         
             flamingo_logits, token_embeds = self.flamingo_palm(
@@ -230,10 +230,10 @@ class FlamingoModule(pl.LightningModule):
         images = batch["image"]
         input_tokens = batch["input_ids"]
         targets = batch["targets"]
-        class_labels = batch["label"]
         batch_size = images.shape[0]
 
         if self.classification_mode:
+            class_labels = batch["label"]
             index_eoq = batch["index_eoq"]
             flamingo_logits, token_embeds = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1)
@@ -315,10 +315,11 @@ class FlamingoModule(pl.LightningModule):
         images = batch["image"]
         input_tokens = batch["input_ids"]
         targets = batch["targets"]
-        class_labels = batch["label"]
+
         batch_size = images.shape[0]
 
         if self.classification_mode:
+            class_labels = batch["label"]
             index_eoq = batch["index_eoq"]
             flamingo_logits, token_embeds = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1)
