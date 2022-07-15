@@ -1,10 +1,11 @@
+from audioop import bias
 import clip
 import torch
 from .clip_model import VisionTransformer
 from torch import nn as nn
 import pytorch_lightning as pl
 from .flamingo_palm_original import FlamingoPaLM
-from .flamingo_model import FlamingoModel
+from .flamingo_model import FlamingoModel, LayerNorm
 from transformers import (
     get_linear_schedule_with_warmup,
     get_constant_schedule_with_warmup,
@@ -111,15 +112,13 @@ class FlamingoModule(pl.LightningModule):
 
         if self.classification_mode:
             #self.classifier = nn.Linear(dim,self.num_classification_classes )
-            #nn.init.normal_(self.classifier.weight, std=0.01)
+            #nn.init.normal_(self.classifier.weight, std=0.02)
             self.classifier = nn.Sequential(
+                LayerNorm(dim),
                 nn.Linear(dim, 4096),
-                nn.ReLU(True),
-                nn.Dropout(),
-                nn.Linear(4096, 4096),
-                nn.ReLU(True),
-                nn.Dropout(),
-                nn.Linear(4096, self.num_classification_classes)
+                nn.ReLU(),
+                nn.Dropout(0.1),
+                nn.Linear(4096, self.num_classification_classes),
             )
 
     def forward(self, x, return_attn=False):
@@ -178,9 +177,7 @@ class FlamingoModule(pl.LightningModule):
         train_loss = torch.sum(train_loss * batch["token_type_ids"]) / (
             torch.sum(batch["token_type_ids"]) * batch_size
         )
-        # Logging to TensorBoard by default
-        # self.log("train_loss", train_loss)
-        # comet_logs = {'train_loss': train_loss}
+
         self.log(
             "train_loss_generation",
             train_loss,
@@ -189,7 +186,7 @@ class FlamingoModule(pl.LightningModule):
             prog_bar=True,
             logger=True,
         )
-                # Classification Loss
+        # Classification Loss
         if self.classification_mode:
             train_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
 
@@ -214,16 +211,13 @@ class FlamingoModule(pl.LightningModule):
             self.logger.experiment.add_scalars(
                 "losses", {"train_loss": train_loss + train_classification_loss}, self.global_step
             )
-            # self.logger.experiment.add_scalar("train_loss", train_loss,self.global_step)
-            # self.logger.experiment.add_scalar('lr', self.trainer.lr_schedulers[0]["scheduler"].get_lr()[0], self.global_step)
 
             return {"loss": train_loss + train_classification_loss}
-        
+
         else:
             self.logger.experiment.add_scalars(
                 "losses", {"train_loss": train_loss}, self.global_step
             )
-
             return {"loss": train_loss}
 
 
@@ -290,17 +284,16 @@ class FlamingoModule(pl.LightningModule):
                 logger=True,
             )
             # Calculate validation accuracy
-            if self.classification_mode:
-                val_acc = (torch.argmax(classification_logits, dim=1) == class_labels).float().mean()
-                self.log(
-                    "val_acc",
-                    val_acc,
-                    on_step=True,
-                    on_epoch=True,
-                    prog_bar=True,
-                    logger=True,
-                    sync_dist=True
-                )
+            val_acc = (torch.argmax(classification_logits, dim=1) == class_labels).float().mean()
+            self.log(
+                "val_acc",
+                val_acc,
+                on_step=True,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+                sync_dist=True
+            )
 
             self.logger.experiment.add_scalars(
                 "losses", {"validation_loss": val_loss+ val_classification_loss}, self.global_step

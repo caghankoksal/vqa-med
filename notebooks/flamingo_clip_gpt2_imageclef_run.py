@@ -47,13 +47,13 @@ if __name__ == '__main__':
     NUM_DATA_WORKERS  = 2
     ONLY_IMAGES = False
     BATCH_SIZE = 96
-    NUM_EPOCHS = 60
+    NUM_EPOCHS = 120
     LIMIT_NUM_SAMPLES = None
     DATASET = "IMAGECLEF"
 
     if os.getcwd().startswith('/home/mlmi-matthias'):
         ACCELERATOR = "gpu"
-        DEVICES = [4,5,6,7]
+        DEVICES = [4]
         PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
         PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
         MIMIC_CXR_DCM_PATH = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
@@ -86,14 +86,16 @@ if __name__ == '__main__':
         "root": IMAGECLEF_PATH,
         "batch_size": BATCH_SIZE,
         "tokenizer": TOKENIZER,
-        "return_size": False,
         "num_data_workers": NUM_DATA_WORKERS,
+        "return_size": False,
         "answers_list_path": ANSWERS_LIST_PATH,
-        "return_idx_answer_eoc": RETURN_IDX_EOC
+        "return_idx_answer_eoc": RETURN_IDX_EOC,
+        "transforms": augmentations,
+        "limit_num_samples": None,
     }
 
 
-    datamodule = ImageCLEF2021DataModule(**dataset_hyperparameters,transforms=augmentations)
+    datamodule = ImageCLEF2021DataModule(**dataset_hyperparameters)
 
 
     train_loader = datamodule.train_dataloader()
@@ -121,7 +123,8 @@ if __name__ == '__main__':
     CLASSIFICATION_MODE = True 
     NUM_CLASSES = 332
     FLAMINGO_MODE = True
-    LABEL_SMOOTHING = 0.1
+    LABEL_SMOOTHING = 0.0
+    GRADIENT_CLIP_VAL = 0
 
 
     hyperparams = {
@@ -177,6 +180,6 @@ if __name__ == '__main__':
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
                         callbacks=[lr_monitor, checkpoint_callback,early_stopping_callback],
-                        gradient_clip_val=1.0)
+                        gradient_clip_val=GRADIENT_CLIP_VAL)
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)

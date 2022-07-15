@@ -288,7 +288,7 @@ class FlamingoModel(nn.Module):
 
         # they used embedding weight tied projection out to logits, not common, but works
         self.to_logits[-1].weight = self.token_emb.weight
-        nn.init.normal_(self.token_emb.weight, std=0.02)
+        #nn.init.normal_(self.token_emb.weight, std=0.02)
 
     def load_gpt2_weights(self, path):
         """
