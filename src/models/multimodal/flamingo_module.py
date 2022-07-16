@@ -212,7 +212,7 @@ class FlamingoModule(pl.LightningModule):
               # Calculate validation accuracy
             train_acc = (torch.argmax(classification_logits, dim=1) == class_labels).float().mean()
             self.log(
-                "val_acc",
+                "train_acc",
                 train_acc,
                 on_step=True,
                 on_epoch=True,
@@ -322,11 +322,11 @@ class FlamingoModule(pl.LightningModule):
 
         
 
-    def  predict_step(self, batch, batch_idx):
+    def  predict_step(self, batch):
         # @TODO implement predict step
         images = batch["image"]
         input_tokens = batch["input_ids"]
-        targets = batch["targets"]
+
 
         batch_size = images.shape[0]
 
@@ -336,8 +336,8 @@ class FlamingoModule(pl.LightningModule):
             flamingo_logits, token_embeds = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1)
             )
-            classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
-            return flamingo_logits, classification_logits
+            #classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
+            return flamingo_logits #, classification_logits
         else:
             flamingo_logits = self.flamingo_palm(
             input_tokens.squeeze(1), images.unsqueeze(1)
