@@ -30,14 +30,20 @@ if __name__ == '__main__':
         
         'train': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
+                            T.RandomHorizontalFlip(p=0.5),
+                            T.RandomRotation(degrees=10),
                             T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
                             ]),
         'val': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
+                            T.RandomHorizontalFlip(p=0.5),
+                            T.RandomRotation(degrees=10),
                             T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
                             ]),
         'test': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
+                            T.RandomHorizontalFlip(p=0.5),
+                            T.RandomRotation(degrees=10),   
                             T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
                             ])
     }
