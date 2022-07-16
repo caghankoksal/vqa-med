@@ -1,8 +1,6 @@
 import sys, os
 import torch
-sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
-#sys.path.append("..")
-#print(sys.path)
+sys.path.append("..")
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -20,8 +18,8 @@ from pytorch_lightning import loggers as pl_loggers
 
 seed_everything(42, workers=True)
 
-img_mean = (0.2570, 0.2570, 0.2570)
-img_std = (0.2710, 0.2710, 0.2710)
+img_mean = (0.48,0.48,0.48)
+img_std = (0.265,0.265,0.265)
 
 transforms = {'train':
     T.Compose(
@@ -53,11 +51,11 @@ transforms = {'train':
 NUM_DATA_WORKERS  = 0
 ONLY_IMAGES = False
 BATCH_SIZE = 64
-NUM_EPOCHS = 10
+NUM_EPOCHS = 5
 LIMIT_NUM_SAMPLES = None
 
 ACCELERATOR = "gpu"
-DEVICES = [1]
+DEVICES = [4]
 PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
 PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
 
@@ -123,7 +121,7 @@ print("LANGUAGE_MODEL : ",LANGUAGE_MODEL, "\n"
 
 hyperparams = {
     'pretrained_clip_path': PRETRAINED_CLIP_PATH,
-    'warmup_steps': 0,
+    'warmup_steps': 30,
     'num_tokens': NUM_TOKENS,
     'dim': FLAMINGO_EMBED_DIM,
     'depth': DEPTH,
@@ -141,7 +139,8 @@ hyperparams = {
 
 model = FlamingoModule(**hyperparams)
 
-CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt"
+#CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt" # CXR
+CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_28/checkpoints/epoch=69-val_loss=2.01-other_metric=0.00.ckpt" # ROCO
 START_FROM_CHECKPOINT = True
 
 if START_FROM_CHECKPOINT:
