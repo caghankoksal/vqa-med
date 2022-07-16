@@ -10,6 +10,7 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM,PreTrainedTokenize
 from PIL import Image
 from tqdm import tqdm as tqdm
 import torchvision.transforms as T
+import random
 
 
 from turbojpeg import TurboJPEG
@@ -102,33 +103,39 @@ class RAD_CLEF_Mixed_DataModule(pl.LightningDataModule):
         self.val_dataset = RAD_CLEF_Mixed_Dataset(self.val_dataset_RAD, self.val_dataset_CLEF, self.limit_num_samples)
         self.test_dataset = RAD_CLEF_Mixed_Dataset(self.test_dataset_RAD, self.test_dataset_CLEF, self.limit_num_samples)
 
-        # print(self.train_dataset[0]["image"].size())
-        # print(self.train_dataset[1]["image"].size())
-        # print(self.train_dataset[2]["image"].size())
-        # print(self.train_dataset[3]["image"].size())
-        # print("############################")
-        # print(self.train_dataset[0]["question"])
-        # print(self.train_dataset[1]["question"])
-        # print("############################")
-        # print(self.train_dataset[0]["answer"])
-        # print(self.train_dataset[1]["answer"])
-        # print("############################")
-        # print(self.train_dataset[0]["qa_pair"])
-        # print(self.train_dataset[1]["qa_pair"])
-        # print("############################")
-        # print(self.train_dataset[0]["input_ids"].size())
-        # print(self.train_dataset[1]["input_ids"].size())
-        # print("############################")
-        # print(self.train_dataset[0]["token_type_ids"].size())
-        # print(self.train_dataset[1]["token_type_ids"].size())
-        # print("############################")
-        # print(self.train_dataset[0]["targets"].size())
-        # print(self.train_dataset[1]["targets"].size())
-        # print("############################")
+    def checkbatch(self, b):
+        for i in range(len(b['image'])):
+            
+            try:
+                assert b["image"][i].size() == torch.Size([3, 224, 224])
+                assert type(b["question"][i]) == str
+                assert type(b["answer"][i]) == str
+                assert type(b["qa_pair"][i]) == str
+                assert b["input_ids"][i].size() == torch.Size([1, 256])
+                assert b["token_type_ids"][i].size() == torch.Size([1, 256])
+                assert b["targets"][i].size() == torch.Size([1, 256])
+            except AssertionError as e:
+                print(b["image"][i].size())
+                print("############################")
+                print(b["question"][i])
+                print("############################")
+                print(b["answer"][i])
+                print("############################")
+                print(b["qa_pair"][i])
+                print("############################")
+                print(b["input_ids"][i].size())
+                print("############################")
+                print(b["token_type_ids"][i].size())
+                print("############################")
+                print(b["targets"][i].size())
+                print("############################")
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size,
+        dl = DataLoader(self.train_dataset, batch_size=self.batch_size,
                           num_workers=self.num_data_workers, pin_memory=True)
+        #for x in dl:
+        #    self.checkbatch(x)
+        return dl
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size,
@@ -188,6 +195,7 @@ class VQARadDataset(Dataset):
         self.tokenizer = tokenizer
 
         self.allannotations = json.load(open(os.path.join(root, "VQA-RAD_public.json")))
+        random.shuffle(self.allannotations, lambda: 0.42) # always shuffle the same way because this function gets calles multiple times for creating train val and test respectively
 
         trainCut, valCut = round(len(self.allannotations) * 0.7), round(len(self.allannotations) * 0.9)
         if mode == "train":
@@ -214,13 +222,11 @@ class VQARadDataset(Dataset):
         question_type = cur_sample["question_type"]
 
 
-        if self.load_in_memory:
-            img = self.data_images[image_name]
-        else:
-            in_file = open(os.path.join(self.root, "images/", cur_sample['image_name']), 'rb')
-            img = self.jpeg.decode(in_file.read())
-            img = Image.fromarray(img)
-            in_file.close()
+
+        in_file = open(os.path.join(self.root, "images/", cur_sample['image_name']), 'rb')
+        img = self.jpeg.decode(in_file.read())
+        img = Image.fromarray(img)
+        in_file.close()
 
         if self.transform is not None:
             img = self.transform(img)
@@ -252,7 +258,7 @@ class VQARadDataset(Dataset):
         # if self.mode == "test":
         #     return {"image":img, "question": question, "answer": answer, "qa_pair": text, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
         # else:
-        return {"image":img, "question": question, "answer": answer, "qa_pair": text, "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
+        return {"image":img, "question": str(question), "answer": str(answer), "qa_pair": str(text), "input_ids": input_ids, "token_type_ids": token_type_ids, "targets" : targets}
 
 
 
@@ -302,6 +308,8 @@ class MedLTDataset(Dataset):
             imgs = make_dataset(root+mode)
         elif mode == 'test':
             imgs = make_testset(root)
+        else:
+            raise Exception("either train, val or test")
 
         self.imgs = imgs
         self.transform = transform
@@ -313,7 +321,7 @@ class MedLTDataset(Dataset):
 
 
     def __getitem__(self, item):
-        if  self.mode != 'test':
+        if self.mode != 'test':
             image_name, question, answer = self.imgs[item]
             image_path = self.root + self.mode + '/images/' + image_name + '.jpg'
         else:
@@ -326,7 +334,7 @@ class MedLTDataset(Dataset):
 
         w, h = image.size
         size = (h, w)
-        if not self.mode == 'test':
+        if self.mode != 'test':
             sample = {'image': image, 'question': question, 'answer': answer}
         else:
             sample = {'image': image, 'question': question}

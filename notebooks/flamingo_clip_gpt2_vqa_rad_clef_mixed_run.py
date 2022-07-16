@@ -26,31 +26,31 @@ img_std = (0.2710, 0.2710, 0.2710)
 transforms = {'train':
     T.Compose(
     [
-        T.RandomRotation(10),
+        #T.RandomRotation(10),
         T.Resize((224,224)),
         T.ToTensor(),
-        T.Normalize(mean=img_mean, std=img_std)
+        #T.Normalize(mean=img_mean, std=img_std)
     ]),
     'val':
     T.Compose(
     [
-        T.RandomRotation(10),
+        #T.RandomRotation(10),
         T.Resize((224,224)),
         T.ToTensor(),
-        T.Normalize(mean=img_mean, std=img_std)
+        #T.Normalize(mean=img_mean, std=img_std)
     ]),
     'test':
     T.Compose(
     [
         T.Resize((224,224)),
         T.ToTensor(),
-        T.Normalize(mean=img_mean, std=img_std)
+        #T.Normalize(mean=img_mean, std=img_std)
     ])
 }
 
 
 # Hyperparameters
-NUM_DATA_WORKERS  = 8
+NUM_DATA_WORKERS  = 0
 ONLY_IMAGES = False
 BATCH_SIZE = 64
 NUM_EPOCHS = 10
@@ -156,10 +156,9 @@ checkpoint_callback = ModelCheckpoint(
                 monitor= 'val_loss',
                     save_top_k = 10)
 
-from pytorch_lightning.strategies import DDPStrategy
+
 trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                     accelerator=ACCELERATOR, devices=DEVICES,
-                    callbacks=[lr_monitor, checkpoint_callback],
-                    strategy=DDPStrategy(find_unused_parameters=False))
+                    callbacks=[lr_monitor, checkpoint_callback])
 
 trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
