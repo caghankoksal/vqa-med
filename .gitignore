@@ -172,3 +172,5 @@ notebooks/lightning_logs_flamingo-gpt2
 notebooks/lightning_logs
 *.xlsx
 data/external/*.json
+lightning_logs/*
+wandb/*

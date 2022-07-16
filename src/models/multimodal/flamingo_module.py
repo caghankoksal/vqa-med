@@ -43,15 +43,16 @@ class FlamingoModule(pl.LightningModule):
 
         self.save_hyperparameters()
         self.warmup_steps = warmup_steps
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = "cpu"
         self.classification_mode= classification_mode
         self.num_classification_classes = classification_num_classes
         self.flamingo_mode = flamingo_mode
         self.label_smoothing = label_smoothing
 
         if image_encoder == "clip" and pretrained_clip_path is not None:
-            print("Pretrained clip is being loaded")
+            print("Clip architecture is being loaded")
             model, _ = clip.load("ViT-B/32", device=device)
+            print("Clip pretrained weights are being loaded")
             model.load_state_dict(
                 torch.load(pretrained_clip_path, map_location=device)["state_dict"]
             )

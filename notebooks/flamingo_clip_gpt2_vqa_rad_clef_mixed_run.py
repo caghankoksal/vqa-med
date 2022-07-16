@@ -4,6 +4,8 @@ sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
 #sys.path.append("..")
 #print(sys.path)
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 import os
 import pytorch_lightning as pl
 from src.datasets.vqa_rad_clef_mixed_dataset import RAD_CLEF_Mixed_DataModule
@@ -25,6 +27,7 @@ transforms = {'train':
     T.Compose(
     [
         T.RandomRotation(10),
+        T.Resize((224,224)),
         T.ToTensor(),
         T.Normalize(mean=img_mean, std=img_std)
     ]),
@@ -32,12 +35,14 @@ transforms = {'train':
     T.Compose(
     [
         T.RandomRotation(10),
+        T.Resize((224,224)),
         T.ToTensor(),
         T.Normalize(mean=img_mean, std=img_std)
     ]),
     'test':
     T.Compose(
     [
+        T.Resize((224,224)),
         T.ToTensor(),
         T.Normalize(mean=img_mean, std=img_std)
     ])
@@ -47,9 +52,9 @@ transforms = {'train':
 # Hyperparameters
 NUM_DATA_WORKERS  = 8
 ONLY_IMAGES = False
-BATCH_SIZE = 32
-NUM_EPOCHS = 5
-LIMIT_NUM_SAMPLES = 20
+BATCH_SIZE = 64
+NUM_EPOCHS = 10
+LIMIT_NUM_SAMPLES = None
 
 ACCELERATOR = "gpu"
 DEVICES = [1]
@@ -75,7 +80,6 @@ mimic_datamodule = RAD_CLEF_Mixed_DataModule(
     tokenizer="gpt2",
     limit_num_samples=LIMIT_NUM_SAMPLES
 )
-
 
 train_loader = mimic_datamodule.train_dataloader()
 val_loader = mimic_datamodule.val_dataloader()
@@ -142,7 +146,7 @@ START_FROM_CHECKPOINT = True
 
 if START_FROM_CHECKPOINT:
     print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
-    model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"])
+    model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location="cpu")["state_dict"])
 
 
 lr_monitor = LearningRateMonitor(logging_interval='step')
