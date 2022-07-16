@@ -208,6 +208,17 @@ class FlamingoModule(pl.LightningModule):
                 prog_bar=True,
                 logger=True,
             )
+              # Calculate validation accuracy
+            train_acc = (torch.argmax(classification_logits, dim=1) == class_labels).float().mean()
+            self.log(
+                "val_acc",
+                train_acc,
+                on_step=True,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+                sync_dist=True
+            )
             # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
             self.logger.experiment.add_scalars(
                 "losses", {"train_loss": train_loss + train_classification_loss}, self.global_step
