@@ -37,6 +37,8 @@ class FlamingoModule(pl.LightningModule):
         classification_num_classes = 332,
         flamingo_mode = True,
         label_smoothing = 0.1,
+        token_label_smoothing = 0.0
+
     ):
 
         super().__init__()
@@ -48,6 +50,7 @@ class FlamingoModule(pl.LightningModule):
         self.num_classification_classes = classification_num_classes
         self.flamingo_mode = flamingo_mode
         self.label_smoothing = label_smoothing
+        self.token_label_smoothing = token_label_smoothing
 
         if image_encoder == "clip" and pretrained_clip_path is not None:
             print("Clip architecture is being loaded")
@@ -116,10 +119,11 @@ class FlamingoModule(pl.LightningModule):
             #nn.init.normal_(self.classifier.weight, std=0.02)
             self.classifier = nn.Sequential(
                 LayerNorm(dim),
-                nn.Linear(dim, 4096),
-                nn.ReLU(),
+                #nn.Linear(dim, 4096),
+                #nn.ReLU(),
                 nn.Dropout(0.1),
-                nn.Linear(4096, self.num_classification_classes),
+                #nn.Linear(4096, self.num_classification_classes),
+                nn.Linear(dim, self.num_classification_classes),
             )
 
     def forward(self, x, return_attn=False):
@@ -172,7 +176,7 @@ class FlamingoModule(pl.LightningModule):
             input_tokens.squeeze(1), images.unsqueeze(1)
         )
 
-        train_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.label_smoothing)(
+        train_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.token_label_smoothing)(
             torch.permute(flamingo_logits, (0, 2, 1)), targets.squeeze(1)
         )
         # Only non pad tokens are considered in the loss
@@ -190,7 +194,7 @@ class FlamingoModule(pl.LightningModule):
         )
         # Classification Loss
         if self.classification_mode:
-            train_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
+            train_classification_loss = nn.CrossEntropyLoss(label_smoothing=self.label_smoothing)(classification_logits, class_labels)
 
             self.log(
                 "train_classification_loss",
@@ -258,7 +262,7 @@ class FlamingoModule(pl.LightningModule):
 
 
 
-        val_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.label_smoothing)(
+        val_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.token_label_smoothing)(
             torch.permute(flamingo_logits, (0, 2, 1)), targets.squeeze(1)
         )
         val_loss = torch.sum(val_loss * batch["token_type_ids"]) / (
@@ -276,7 +280,7 @@ class FlamingoModule(pl.LightningModule):
         )
         if self.classification_mode:
                     # Classification Loss
-            val_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
+            val_classification_loss = nn.CrossEntropyLoss(label_smoothing=self.label_smoothing)(classification_logits, class_labels)
 
             self.log(
                 "val_classification_loss",

@@ -120,10 +120,12 @@ if __name__ == '__main__':
     PERCEIVER_NUM_LATENTS = 64
     PERCEIVER_DEPTH = 2
     IMAGE_ENCODER = "clip"
-    CLASSIFICATION_MODE = True 
+    CLASSIFICATION_MODE = True
     NUM_CLASSES = 332
     FLAMINGO_MODE = True
     LABEL_SMOOTHING = 0.0
+    # Label smoothing for classification task
+    TOKEN_LABEL_SMOOTHING = 0.0
     GRADIENT_CLIP_VAL = 0
 
 
@@ -145,7 +147,8 @@ if __name__ == '__main__':
         'classification_mode': CLASSIFICATION_MODE,
         'classification_num_classes': NUM_CLASSES,  # 332 if DATASET=="IMAGECLEF"
         'flamingo_mode': FLAMINGO_MODE,
-        "label_smoothing": LABEL_SMOOTHING
+        "label_smoothing": LABEL_SMOOTHING,
+        "token_label_smoothing": TOKEN_LABEL_SMOOTHING,
     }
 
     print_hyperparams(hyperparams)
@@ -170,11 +173,13 @@ if __name__ == '__main__':
 
 
     checkpoint_callback = ModelCheckpoint(
-                filename='{epoch}-{val_total_loss:.2f}-{other_metric:.2f}',
-                    monitor= 'val_total_loss',
-                        save_top_k = 5)
+            filename='{epoch}-{val_acc_epoch:.2f}-{val_total_loss_epoch:.2f}-{val_loss_generation_epoch:.2f}-{val_classification_loss_epoch:.2f}',
+                    monitor= 'val_acc_epoch',
+                        save_top_k = 10,
+                        save_last=True,
+                        mode="max")
 
-    early_stopping_callback = EarlyStopping(monitor="val_total_loss", mode="min",patience=5)
+    early_stopping_callback = EarlyStopping(monitor="val_acc_epoch", mode="max",patience=10)
 
     # All our models are trained using the AdamW optimizer with global norm clipping of 1
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
