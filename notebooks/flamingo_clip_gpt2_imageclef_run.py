@@ -133,6 +133,7 @@ if __name__ == '__main__':
     # Label smoothing for classification task
     TOKEN_LABEL_SMOOTHING = 0.0
     GRADIENT_CLIP_VAL = 0
+    LEARNING_RATE = 1e-4
 
 
     hyperparams = {
@@ -155,6 +156,7 @@ if __name__ == '__main__':
         'flamingo_mode': FLAMINGO_MODE,
         "label_smoothing": LABEL_SMOOTHING,
         "token_label_smoothing": TOKEN_LABEL_SMOOTHING,
+        "learning_rate":LEARNING_RATE
     }
 
     print_hyperparams(hyperparams)

@@ -37,7 +37,8 @@ class FlamingoModule(pl.LightningModule):
         classification_num_classes = 332,
         flamingo_mode = True,
         label_smoothing = 0.1,
-        token_label_smoothing = 0.0
+        token_label_smoothing = 0.0,
+        learning_rate = 1e-4,
 
     ):
 
@@ -51,6 +52,7 @@ class FlamingoModule(pl.LightningModule):
         self.flamingo_mode = flamingo_mode
         self.label_smoothing = label_smoothing
         self.token_label_smoothing = token_label_smoothing
+        self.learning_rate = learning_rate
 
         if image_encoder == "clip" and pretrained_clip_path is not None:
             print("Clip architecture is being loaded")
@@ -383,7 +385,7 @@ class FlamingoModule(pl.LightningModule):
         {"params": [p for n, p in params if n.startswith('flamingo_palm.perceiver_resampler')], 'weight_decay': 0},
         {"params": [p for n, p in params if not n.startswith('flamingo_palm.perceiver_resampler') ],'weight_decay': 0.01 },
         ]
-        optimizer = torch.optim.AdamW(grouped_parameters, lr=1e-4)
+        optimizer = torch.optim.AdamW(grouped_parameters, lr=self.learning_rate)
 
         scheduler = get_constant_schedule_with_warmup(
             optimizer,
