@@ -66,7 +66,9 @@ if __name__ == '__main__':
         MIMIC_CXR_JPG_PATH = "/home/mlmi-matthias/physionet.org/files/mimic-cxr-jpg/2.0.0/files/"
         SPLIT_PATH = '/home/mlmi-matthias/Caghan/mlmi-vqa/data/external/'
         IMAGECLEF_PATH ='/home/mlmi-matthias/imageclef/'
-        CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt"
+        #CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt"
+        # Latest ROCO Training 
+        CHECKPOINT_PATH ="/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_77/checkpoints/epoch=61-val_loss_generation_epoch=1.80.ckpt"
         ANSWERS_LIST_PATH = '/home/mlmi-matthias/Caghan/mlmi-vqa//data/external/answer_list_imageclef.txt'
 
 
@@ -128,12 +130,13 @@ if __name__ == '__main__':
     IMAGE_ENCODER = "clip"
     CLASSIFICATION_MODE = True
     NUM_CLASSES = 332
-    FLAMINGO_MODE = True
-    LABEL_SMOOTHING = 0.0
+    FLAMINGO_MODE = False
+    LABEL_SMOOTHING = 0.2
     # Label smoothing for classification task
     TOKEN_LABEL_SMOOTHING = 0.0
-    GRADIENT_CLIP_VAL = 0
+    GRADIENT_CLIP_VAL = 1
     LEARNING_RATE = 1e-4
+    USE_IMAGE_EMBEDDINGS = True
 
 
     hyperparams = {
@@ -156,25 +159,21 @@ if __name__ == '__main__':
         'flamingo_mode': FLAMINGO_MODE,
         "label_smoothing": LABEL_SMOOTHING,
         "token_label_smoothing": TOKEN_LABEL_SMOOTHING,
-        "learning_rate":LEARNING_RATE
+        "learning_rate":LEARNING_RATE,
+        "use_image_embeddings": USE_IMAGE_EMBEDDINGS
     }
 
     print_hyperparams(hyperparams)
 
     model = FlamingoModule(**hyperparams)
-    
     START_FROM_CHECKPOINT = True
 
     if START_FROM_CHECKPOINT:
-        if NUM_TOKENS == 50261:
-            print("Flamingo weights are loading from checkpoint with 50261 tokens")
-            load_flamingo_weights(model, CHECKPOINT_PATH)
+        print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
+        if os.getcwd().startswith('/home/mlmi-matthias'):
+            model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"],strict=False)
         else:
-            print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
-            if os.getcwd().startswith('/home/mlmi-matthias'):
-                model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"],strict=False)
-            else:
-                model.load_state_dict(torch.load(CHECKPOINT_PATH,map_location=torch.device('cpu'))["state_dict"],strict=False)
+            model.load_state_dict(torch.load(CHECKPOINT_PATH,map_location=torch.device('cpu'))["state_dict"],strict=False)
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
 

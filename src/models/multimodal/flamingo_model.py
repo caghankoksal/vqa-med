@@ -351,7 +351,7 @@ class FlamingoModel(nn.Module):
         unfreeze_all_layers_(self.wpe)
 
 
-    def forward(self, text, images=None, image_embeds=None, return_attn=False):
+    def forward(self, text, images=None, image_embeds=None, return_attn=False, return_image_embeddings=False):
         batch, device = text.shape[0], text.device
 
         # derive the media token ids (as a boolean tensor), for calculating the masked cross attention
@@ -385,6 +385,7 @@ class FlamingoModel(nn.Module):
                 image_embeds = self.img_encoder_outdim_layer(image_embeds)
 
             image_embeds = rearrange(image_embeds, "(b t) ... -> b t ...", b=batch)
+            image_encoder_output = image_embeds.clone()
 
         if exists(image_embeds):
             image_embeds = self.perceiver_resampler(image_embeds)
@@ -403,7 +404,9 @@ class FlamingoModel(nn.Module):
         if return_attn:
             return self.to_logits(text_tokens), attns
         else:
-            if self.classification_mode:
-                return self.to_logits(text_tokens), text_tokens
+            if self.classification_mode and return_image_embeddings:
+                return self.to_logits(text_tokens), text_tokens, image_encoder_output
+            elif self.classification_mode:
+                return self.to_logits(text_tokens), text_tokens, 
             else:
                 return self.to_logits(text_tokens)
