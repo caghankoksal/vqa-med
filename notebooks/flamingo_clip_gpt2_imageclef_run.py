@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     if os.getcwd().startswith('/home/mlmi-matthias'):
         ACCELERATOR = "gpu"
-        DEVICES = [4]
+        DEVICES = [6,7]
         PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
         PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
         MIMIC_CXR_DCM_PATH = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
@@ -130,13 +130,15 @@ if __name__ == '__main__':
     IMAGE_ENCODER = "clip"
     CLASSIFICATION_MODE = True
     NUM_CLASSES = 332
-    FLAMINGO_MODE = False
+    FLAMINGO_MODE = True
     LABEL_SMOOTHING = 0.2
     # Label smoothing for classification task
     TOKEN_LABEL_SMOOTHING = 0.0
     GRADIENT_CLIP_VAL = 1
     LEARNING_RATE = 1e-4
     USE_IMAGE_EMBEDDINGS = True
+    TRAIN_EMBEDDING_LAYER = True
+    CLASSIFIER_DROPOUT = 0.5
 
 
     hyperparams = {
@@ -160,7 +162,9 @@ if __name__ == '__main__':
         "label_smoothing": LABEL_SMOOTHING,
         "token_label_smoothing": TOKEN_LABEL_SMOOTHING,
         "learning_rate":LEARNING_RATE,
-        "use_image_embeddings": USE_IMAGE_EMBEDDINGS
+        "use_image_embeddings": USE_IMAGE_EMBEDDINGS,
+        "train_embedding_layer": TRAIN_EMBEDDING_LAYER,
+        "classifier_dropout": CLASSIFIER_DROPOUT
     }
 
     print_hyperparams(hyperparams)

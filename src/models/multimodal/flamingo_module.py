@@ -39,7 +39,9 @@ class FlamingoModule(pl.LightningModule):
         label_smoothing = 0.1,
         token_label_smoothing = 0.0,
         learning_rate = 1e-4,
-        use_image_embeddings = False
+        use_image_embeddings = False,
+        train_embedding_layer = True,
+        classifier_dropout = 0.5
 
     ):
 
@@ -55,6 +57,7 @@ class FlamingoModule(pl.LightningModule):
         self.token_label_smoothing = token_label_smoothing
         self.learning_rate = learning_rate
         self.use_image_embeddings = use_image_embeddings
+        self.classifier_dropout = classifier_dropout
 
         if image_encoder == "clip" and pretrained_clip_path is not None:
             print("Clip architecture is being loaded")
@@ -115,7 +118,8 @@ class FlamingoModule(pl.LightningModule):
             img_encoder_outdim=self.img_encoder_outdim,
             pretrained_gpt2_path=pretrained_gpt2_path,
             classification_mode = self.classification_mode,
-            flamingo_mode = self.flamingo_mode
+            flamingo_mode = self.flamingo_mode,
+            train_embedding_layer=train_embedding_layer
         )
 
         if self.classification_mode:
@@ -135,7 +139,7 @@ class FlamingoModule(pl.LightningModule):
                     LayerNorm(dim),
                     #nn.Linear(dim, 4096),
                     #nn.ReLU(),
-                    nn.Dropout(0.1),
+                    nn.Dropout(self.classifier_dropout),
                     #nn.Linear(4096, self.num_classification_classes),
                     nn.Linear(dim, self.num_classification_classes),
                 )
@@ -297,7 +301,7 @@ class FlamingoModule(pl.LightningModule):
             classification_logits = self.classifier(torch.cat([image_embeddings.squeeze(1), eoq_embeds],dim=1))
 
         elif self.classification_mode:
-            class_labels = batch["label"]
+            class_labels = batch["label"]git
             index_eoq = batch["index_eoq"]
             flamingo_logits, token_embeds = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1)

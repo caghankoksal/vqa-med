@@ -221,7 +221,8 @@ class FlamingoModel(nn.Module):
         pretrained_gpt2_path=None,
         classification_mode = False,
         flamingo_mode = True,
-        context_size = 256
+        context_size = 256,
+        train_embedding_layer = True
     ):
 
         super().__init__()
@@ -237,6 +238,7 @@ class FlamingoModel(nn.Module):
         self.img_encoder_outdim = img_encoder_outdim
         self.img_encoder = img_encoder
         self.flamingo_mode = flamingo_mode
+        self.train_embedding_layer=train_embedding_layer
         freeze_model_and_make_eval_(self.img_encoder)
 
         self.perceiver_resampler = PerceiverResampler(
@@ -326,7 +328,6 @@ class FlamingoModel(nn.Module):
             len(pretrained_dict.keys()),
         )
 
-        self.train_embedding_layer=True
             # automatically take care of freezing or unfreezing depending on what is passed in
         if self.flamingo_mode:
             # in flamingo mode, freeze everything but perceiver and gated cross attention
