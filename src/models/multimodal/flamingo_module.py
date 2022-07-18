@@ -180,7 +180,7 @@ class FlamingoModule(pl.LightningModule):
                 )
                 return flamingo_logits
 
-    def training_step(self, batch):
+    def training_step(self, batch, batch_idx):
         # training_step defined the train loop.
         # It is independent of forward
         images = batch["image"]
@@ -276,7 +276,7 @@ class FlamingoModule(pl.LightningModule):
 
 
 
-    def validation_step(self, batch):
+    def validation_step(self, batch, batch_idx):
         # val defined the training loop.
         # It is independent of forward
         images = batch["image"]
