@@ -301,7 +301,7 @@ class FlamingoModule(pl.LightningModule):
             classification_logits = self.classifier(torch.cat([image_embeddings.squeeze(1), eoq_embeds],dim=1))
 
         elif self.classification_mode:
-            class_labels = batch["label"]git
+            class_labels = batch["label"]
             index_eoq = batch["index_eoq"]
             flamingo_logits, token_embeds = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1)
