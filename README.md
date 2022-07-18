@@ -1,6 +1,7 @@
 # MLMI VQA model
 
-Visual Question Answering (VQA) task for medical data. VQA models answer questions for Xray images. 
+*Explaining Medical Image Classifiers with Visual Question Answering Models:*<br>
+a Visual Question Answering (VQA) Model trained  on medical data
 
 
 # Description
@@ -8,7 +9,7 @@ Deep learning has shown promising potential for Medical Image Classification and
 
 Using [Flamingo, a Visual Language Model for Few-Shot Learning](https://doi.org/10.48550/ARXIV.2204.14198), we leverage big pre-trained language models and vision encoders to build a new VQA model that can answers question for Xray images.
 
-You can find out pretrained available Models under the [following link](https://drive.google.com/drive/folders/1WYwDez52QNDBsYQPPh5tsSDyV1hs8eJs?usp=sharing)
+You can find out available pre-trained Models under the [following link](https://drive.google.com/drive/folders/1WYwDez52QNDBsYQPPh5tsSDyV1hs8eJs?usp=sharing)
 
 # Requirements
 - [Python](https://www.python.org/downloads/) (Python `>= 3.8`)
@@ -16,18 +17,20 @@ You can find out pretrained available Models under the [following link](https://
 
 # Table Of Contents
 -  [Model Architecture](#model-architecture)
--  [Training and Testing Logs](#training-and-testing-logs)
+-  [Training and Testing](#training-and-testing)
+-  [Getting Started](#getting-started)
+-  [Demo and Deploy](#demo-and-deploy)
 -  [Future Work](#future-work)
 -  [Contributing](#contributing)
 -  [Acknowledgments](#acknowledgments)
 
 
 # Model Architecture
-Using Flamingo's architecture elements, we built this following model:
+Using Flamingo's architecture elements, we built a model capable of taking an Xray image and any question as inputs in order to generate an answer to the asked question. A simplified overview of our model architecture is given in the following figure :   
 
-![image](https://github.com/thecodebuzz/FileSizePOC/blob/master/TheCodebuzz.png?raw=true)
+![image](docs/imgs/flamingo-own.jpg)
 
-# Training and Testing Logs
+# Training and Testing
 TOOD: For the training process, we trained our model for ..... on ...... using the dataset .............
 TODO: soe test results
 
@@ -63,7 +66,7 @@ TODO
 At the moment still closed for contributions.
 
 
-## Acknowledgment
+## Acknowledgments
 
 Authors: **Fabian Scherer - Andrei Mancu - Alaeddine Mellouli - Çağhan Köksal**
 
