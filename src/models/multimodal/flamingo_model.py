@@ -411,7 +411,7 @@ class FlamingoModel(nn.Module):
                 text_tokens = flamingo_cross_attn(
                     text_tokens, image_embeds, media_locations=media_locations
                 )
-        if return_embeds:
+        if return_embeds and not self.classification_mode:
             return text_tokens
         if return_attn:
             return self.to_logits(text_tokens), attns
