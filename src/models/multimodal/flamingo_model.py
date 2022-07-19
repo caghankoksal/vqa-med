@@ -241,7 +241,7 @@ class FlamingoModel(nn.Module):
         self.img_encoder = img_encoder
         self.flamingo_mode = flamingo_mode
         self.train_embedding_layer=train_embedding_layer
-        self.use_positional_embedding
+        self.use_positional_embedding = use_positional_embedding
         freeze_model_and_make_eval_(self.img_encoder)
 
         self.perceiver_resampler = PerceiverResampler(
