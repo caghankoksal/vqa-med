@@ -164,7 +164,7 @@ class FlamingoModule(pl.LightningModule):
                 classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
                 classification_logits = torch.softmax(classification_logits, dim=1)
 
-                return flamingo_logits, classification_logits
+                return token_embeds, classification_logits
 
             else:
                 text_embeds = self.flamingo_palm(
