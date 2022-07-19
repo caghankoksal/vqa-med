@@ -147,13 +147,31 @@ class FlamingoModule(pl.LightningModule):
                     nn.Linear(dim, self.num_classification_classes),
                 )
 
-    def forward(self, x, return_attn=False):
+    def forward(self, x, return_attn=False, return_embeds=False):
         # in lightning, forward defines the prediction/inference actions
         images = x["image"]
         input_tokens = x["input_ids"]
         
         batch_size = images.shape[0]
         
+        if return_embeds:
+            if self.classification_mode:
+                index_eoq = x["index_eoq"]
+                flamingo_logits, token_embeds = self.flamingo_palm(
+                    input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn, return_embeds=return_embeds
+                )
+
+                classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
+                classification_logits = torch.softmax(classification_logits, dim=1)
+
+                return flamingo_logits, classification_logits
+
+            else:
+                text_embeds = self.flamingo_palm(
+                    input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn, return_embeds=return_embeds
+                )
+                return text_embeds
+
         if return_attn:
             flamingo_logits, attns = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn

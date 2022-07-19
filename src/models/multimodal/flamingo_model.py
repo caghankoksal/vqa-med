@@ -359,7 +359,7 @@ class FlamingoModel(nn.Module):
         unfreeze_all_layers_(self.wpe)
 
 
-    def forward(self, text, images=None, image_embeds=None, return_attn=False, return_image_embeddings=False):
+    def forward(self, text, images=None, image_embeds=None, return_attn=False, return_image_embeddings=False, return_embeds=False):
         batch, device = text.shape[0], text.device
 
         # derive the media token ids (as a boolean tensor), for calculating the masked cross attention
@@ -411,6 +411,8 @@ class FlamingoModel(nn.Module):
                 text_tokens = flamingo_cross_attn(
                     text_tokens, image_embeds, media_locations=media_locations
                 )
+        if return_embeds:
+            return text_tokens
         if return_attn:
             return self.to_logits(text_tokens), attns
         else:
