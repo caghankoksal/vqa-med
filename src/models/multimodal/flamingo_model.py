@@ -222,7 +222,9 @@ class FlamingoModel(nn.Module):
         classification_mode = False,
         flamingo_mode = True,
         context_size = 256,
-        train_embedding_layer = True
+        train_embedding_layer = True,
+        use_positional_embedding = True
+
     ):
 
         super().__init__()
@@ -239,6 +241,7 @@ class FlamingoModel(nn.Module):
         self.img_encoder = img_encoder
         self.flamingo_mode = flamingo_mode
         self.train_embedding_layer=train_embedding_layer
+        self.use_positional_embedding
         freeze_model_and_make_eval_(self.img_encoder)
 
         self.perceiver_resampler = PerceiverResampler(
@@ -363,9 +366,11 @@ class FlamingoModel(nn.Module):
 
         media_locations = text == self.media_token_id
 
-        pos_ids = torch.arange(0, text.size(-1),device=device).unsqueeze(0)
+        
         text_tokens = self.token_emb(text)
-        text_tokens = self.drop(text_tokens + self.wpe(pos_ids))
+        if self.use_positional_embedding:
+            pos_ids = torch.arange(0, text.size(-1),device=device).unsqueeze(0)
+            text_tokens = self.drop(text_tokens + self.wpe(pos_ids))
 
         assert not (exists(images) and exists(image_embeds))
 

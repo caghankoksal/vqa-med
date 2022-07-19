@@ -41,7 +41,8 @@ class FlamingoModule(pl.LightningModule):
         learning_rate = 1e-4,
         use_image_embeddings = False,
         train_embedding_layer = True,
-        classifier_dropout = 0.5
+        classifier_dropout = 0.5,
+        use_positional_embedding = True
 
     ):
 
@@ -58,6 +59,7 @@ class FlamingoModule(pl.LightningModule):
         self.learning_rate = learning_rate
         self.use_image_embeddings = use_image_embeddings
         self.classifier_dropout = classifier_dropout
+        self.use_positional_embedding = use_positional_embedding
 
         if image_encoder == "clip" and pretrained_clip_path is not None:
             print("Clip architecture is being loaded")
@@ -119,7 +121,8 @@ class FlamingoModule(pl.LightningModule):
             pretrained_gpt2_path=pretrained_gpt2_path,
             classification_mode = self.classification_mode,
             flamingo_mode = self.flamingo_mode,
-            train_embedding_layer=train_embedding_layer
+            train_embedding_layer=train_embedding_layer,
+            use_positional_embedding = self.use_positional_embedding
         )
 
         if self.classification_mode:
