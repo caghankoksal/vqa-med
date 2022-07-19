@@ -321,7 +321,11 @@ class FlamingoModel(nn.Module):
         self.layers.load_state_dict(model_dict)
 
         # Load Embedding Weights
-        self.token_emb.weight.data[: self.num_tokens - 4] = state_dict["wte.weight"]
+        if self.num_tokens == 50261:
+            self.token_emb.weight.data[: self.num_tokens - 4] = state_dict["wte.weight"]
+        elif self.num_tokens == 50260:
+            self.token_emb.weight.data[: self.num_tokens - 3] = state_dict["wte.weight"]
+
         print(
             "Loaded GPT2 weights and Embeddings",
             "num_weights loaded : ",
