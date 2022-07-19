@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
 
 
-    hyperparameters = {
+    dataset_hyperparameters = {
         "root": ROOT,
         "batch_size": BATCH_SIZE,
         "tokenizer": "gpt2",
@@ -93,7 +93,7 @@ if __name__ == '__main__':
         
     }
 
-    roco_datamodule = ROCODataModule(**hyperparameters)
+    roco_datamodule = ROCODataModule(**dataset_hyperparameters)
 
 
     train_loader = roco_datamodule.train_dataloader()
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     # MODEL HPRAMS
     VOCAB_SIZE_OF_TOKENIZER = 50257 # mimic_datamodule.train_dataset.tokenizer.vocab_size
     LANGUAGE_MODEL = 'gpt2'
-    NUM_TOKENS = VOCAB_SIZE_OF_TOKENIZER +3 if LANGUAGE_MODEL=="gpt2" else 31092
+    NUM_TOKENS = VOCAB_SIZE_OF_TOKENIZER +4 if LANGUAGE_MODEL=="gpt2" else 31092
     FLAMINGO_EMBED_DIM = 768
     DEPTH = 12
     NUM_HEADS = 8
@@ -118,22 +118,13 @@ if __name__ == '__main__':
     PERCEIVER_NUM_LATENTS = 64
     PERCEIVER_DEPTH = 2
     IMAGE_ENCODER = "clip"
+    CLASSIFICATION_MODE = False 
+    NUM_CLASSES = 332
+    FLAMINGO_MODE = False
+    LABEL_SMOOTHING = 0.0
+    GRADIENT_CLIP_VAL = 0
 
 
-
-    print("LANGUAGE_MODEL : ",LANGUAGE_MODEL, "\n"
-            "NUM_TOKENS : ",NUM_TOKENS, "\n"
-            "FLAMINGO_EMBED_DIM : ",FLAMINGO_EMBED_DIM, "\n"
-            "DEPTH : ",DEPTH, "\n"
-            "NUM_HEADS : ",NUM_HEADS, "\n"
-            "ATT_HEAD_DIM : ",ATT_HEAD_DIM, "\n"
-            "CROOS_ATT_EVERY : ",CROOS_ATT_EVERY, "\n"
-            "MEDIA_TOKEN_ID : ",MEDIA_TOKEN_ID, "\n"
-            "PERCEIVER_NUM_LATENTS : ",PERCEIVER_NUM_LATENTS, "\n"
-            "PERCEIVER_DEPTH : ",PERCEIVER_DEPTH, "\n"
-            "IMAGE_ENCODER : ",IMAGE_ENCODER, "\n"
-            "PRETRAINED_CLIP_PATH : ",PRETRAINED_CLIP_PATH, "\n"
-            "PRETRAINED_GPT2_PATH : ",PRETRAINED_GPT2_PATH, "\n")
 
 
     hyperparams = {
@@ -151,6 +142,10 @@ if __name__ == '__main__':
         'image_encoder': IMAGE_ENCODER,
         'language_model': LANGUAGE_MODEL,
         'pretrained_gpt2_path': PRETRAINED_GPT2_PATH,
+        'classification_mode': CLASSIFICATION_MODE,
+        'classification_num_classes': NUM_CLASSES,  # 332 if DATASET=="IMAGECLEF"
+        'flamingo_mode': FLAMINGO_MODE,
+        "label_smoothing": LABEL_SMOOTHING
     }
 
 
@@ -160,12 +155,12 @@ if __name__ == '__main__':
     lr_monitor = LearningRateMonitor(logging_interval='step')  
     checkpoint_callback = ModelCheckpoint(
                 filename='{epoch}-{val_loss:.2f}-{other_metric:.2f}',
-                    monitor= 'val_loss',
-                        save_top_k = 10)
+                    monitor= 'val_total_loss_epoch',
+                        save_top_k = 5)
     
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
                         callbacks=[lr_monitor, checkpoint_callback],
-                        strategy=DDPStrategy(find_unused_parameters=False))
+                        )
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)

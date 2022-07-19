@@ -1,8 +1,8 @@
 import sys, os
 import torch
-sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
-#sys.path.append("..")
-#print(sys.path)
+sys.path.append("..")
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 import os
 import pytorch_lightning as pl
@@ -18,41 +18,44 @@ from pytorch_lightning import loggers as pl_loggers
 
 seed_everything(42, workers=True)
 
-img_mean = (0.2570, 0.2570, 0.2570)
-img_std = (0.2710, 0.2710, 0.2710)
+img_mean = (0.48,0.48,0.48)
+img_std = (0.265,0.265,0.265)
 
 transforms = {'train':
     T.Compose(
     [
-        T.RandomRotation(10),
+        #T.RandomRotation(10),
+        T.Resize((224,224)),
         T.ToTensor(),
-        T.Normalize(mean=img_mean, std=img_std)
+        #T.Normalize(mean=img_mean, std=img_std)
     ]),
     'val':
     T.Compose(
     [
-        T.RandomRotation(10),
+        #T.RandomRotation(10),
+        T.Resize((224,224)),
         T.ToTensor(),
-        T.Normalize(mean=img_mean, std=img_std)
+        #T.Normalize(mean=img_mean, std=img_std)
     ]),
     'test':
     T.Compose(
     [
+        T.Resize((224,224)),
         T.ToTensor(),
-        T.Normalize(mean=img_mean, std=img_std)
+        #T.Normalize(mean=img_mean, std=img_std)
     ])
 }
 
 
 # Hyperparameters
-NUM_DATA_WORKERS  = 8
+NUM_DATA_WORKERS  = 0
 ONLY_IMAGES = False
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 NUM_EPOCHS = 5
-LIMIT_NUM_SAMPLES = 20
+LIMIT_NUM_SAMPLES = None
 
 ACCELERATOR = "gpu"
-DEVICES = [1]
+DEVICES = [4]
 PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
 PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
 
@@ -75,7 +78,6 @@ mimic_datamodule = RAD_CLEF_Mixed_DataModule(
     tokenizer="gpt2",
     limit_num_samples=LIMIT_NUM_SAMPLES
 )
-
 
 train_loader = mimic_datamodule.train_dataloader()
 val_loader = mimic_datamodule.val_dataloader()
@@ -119,7 +121,7 @@ print("LANGUAGE_MODEL : ",LANGUAGE_MODEL, "\n"
 
 hyperparams = {
     'pretrained_clip_path': PRETRAINED_CLIP_PATH,
-    'warmup_steps': 0,
+    'warmup_steps': 30,
     'num_tokens': NUM_TOKENS,
     'dim': FLAMINGO_EMBED_DIM,
     'depth': DEPTH,
@@ -137,12 +139,13 @@ hyperparams = {
 
 model = FlamingoModule(**hyperparams)
 
-CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt"
+#CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt" # CXR
+CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_28/checkpoints/epoch=69-val_loss=2.01-other_metric=0.00.ckpt" # ROCO
 START_FROM_CHECKPOINT = True
 
 if START_FROM_CHECKPOINT:
     print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
-    model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"])
+    model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location="cpu")["state_dict"])
 
 
 lr_monitor = LearningRateMonitor(logging_interval='step')
@@ -152,10 +155,9 @@ checkpoint_callback = ModelCheckpoint(
                 monitor= 'val_loss',
                     save_top_k = 10)
 
-from pytorch_lightning.strategies import DDPStrategy
+
 trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                     accelerator=ACCELERATOR, devices=DEVICES,
-                    callbacks=[lr_monitor, checkpoint_callback],
-                    strategy=DDPStrategy(find_unused_parameters=False))
+                    callbacks=[lr_monitor, checkpoint_callback])
 
 trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)

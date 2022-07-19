@@ -30,14 +30,20 @@ if __name__ == '__main__':
         
         'train': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
+                            T.RandomHorizontalFlip(p=0.5),
+                            T.RandomRotation(degrees=10),
                             T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
                             ]),
         'val': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
+                            T.RandomHorizontalFlip(p=0.5),
+                            T.RandomRotation(degrees=10),
                             T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
                             ]),
         'test': T.Compose([T.Resize((224,224)),
                             T.ToTensor(),
+                            T.RandomHorizontalFlip(p=0.5),
+                            T.RandomRotation(degrees=10),   
                             T.Normalize(mean=(0.2570, 0.2570, 0.2570), std=(0.2710, 0.2710, 0.2710))
                             ])
     }
@@ -47,20 +53,22 @@ if __name__ == '__main__':
     NUM_DATA_WORKERS  = 2
     ONLY_IMAGES = False
     BATCH_SIZE = 96
-    NUM_EPOCHS = 60
+    NUM_EPOCHS = 120
     LIMIT_NUM_SAMPLES = None
     DATASET = "IMAGECLEF"
 
     if os.getcwd().startswith('/home/mlmi-matthias'):
         ACCELERATOR = "gpu"
-        DEVICES = [4,5,6,7]
+        DEVICES = [6,7]
         PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
         PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
         MIMIC_CXR_DCM_PATH = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
         MIMIC_CXR_JPG_PATH = "/home/mlmi-matthias/physionet.org/files/mimic-cxr-jpg/2.0.0/files/"
         SPLIT_PATH = '/home/mlmi-matthias/Caghan/mlmi-vqa/data/external/'
         IMAGECLEF_PATH ='/home/mlmi-matthias/imageclef/'
-        CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt"
+        #CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt"
+        # Latest ROCO Training 
+        CHECKPOINT_PATH ="/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_77/checkpoints/epoch=61-val_loss_generation_epoch=1.80.ckpt"
         ANSWERS_LIST_PATH = '/home/mlmi-matthias/Caghan/mlmi-vqa//data/external/answer_list_imageclef.txt'
 
 
@@ -86,14 +94,16 @@ if __name__ == '__main__':
         "root": IMAGECLEF_PATH,
         "batch_size": BATCH_SIZE,
         "tokenizer": TOKENIZER,
-        "return_size": False,
         "num_data_workers": NUM_DATA_WORKERS,
+        "return_size": False,
         "answers_list_path": ANSWERS_LIST_PATH,
-        "return_idx_answer_eoc": RETURN_IDX_EOC
+        "return_idx_answer_eoc": RETURN_IDX_EOC,
+        "transforms": augmentations,
+        "limit_num_samples": None,
     }
 
 
-    datamodule = ImageCLEF2021DataModule(**dataset_hyperparameters,transforms=augmentations)
+    datamodule = ImageCLEF2021DataModule(**dataset_hyperparameters)
 
 
     train_loader = datamodule.train_dataloader()
@@ -118,10 +128,17 @@ if __name__ == '__main__':
     PERCEIVER_NUM_LATENTS = 64
     PERCEIVER_DEPTH = 2
     IMAGE_ENCODER = "clip"
-    CLASSIFICATION_MODE = True 
+    CLASSIFICATION_MODE = True
     NUM_CLASSES = 332
     FLAMINGO_MODE = True
-    LABEL_SMOOTHING = 0.1
+    LABEL_SMOOTHING = 0.2
+    # Label smoothing for classification task
+    TOKEN_LABEL_SMOOTHING = 0.0
+    GRADIENT_CLIP_VAL = 1
+    LEARNING_RATE = 1e-4
+    USE_IMAGE_EMBEDDINGS = True
+    TRAIN_EMBEDDING_LAYER = True
+    CLASSIFIER_DROPOUT = 0.5
 
 
     hyperparams = {
@@ -142,41 +159,43 @@ if __name__ == '__main__':
         'classification_mode': CLASSIFICATION_MODE,
         'classification_num_classes': NUM_CLASSES,  # 332 if DATASET=="IMAGECLEF"
         'flamingo_mode': FLAMINGO_MODE,
-        "label_smoothing": LABEL_SMOOTHING
+        "label_smoothing": LABEL_SMOOTHING,
+        "token_label_smoothing": TOKEN_LABEL_SMOOTHING,
+        "learning_rate":LEARNING_RATE,
+        "use_image_embeddings": USE_IMAGE_EMBEDDINGS,
+        "train_embedding_layer": TRAIN_EMBEDDING_LAYER,
+        "classifier_dropout": CLASSIFIER_DROPOUT
     }
 
     print_hyperparams(hyperparams)
 
     model = FlamingoModule(**hyperparams)
-    
     START_FROM_CHECKPOINT = True
 
     if START_FROM_CHECKPOINT:
-        if NUM_TOKENS == 50261:
-            print("Flamingo weights are loading from checkpoint with 50261 tokens")
-            load_flamingo_weights(model, CHECKPOINT_PATH)
+        print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
+        if os.getcwd().startswith('/home/mlmi-matthias'):
+            model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"],strict=False)
         else:
-            print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
-            if os.getcwd().startswith('/home/mlmi-matthias'):
-                model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"],strict=False)
-            else:
-                model.load_state_dict(torch.load(CHECKPOINT_PATH,map_location=torch.device('cpu'))["state_dict"],strict=False)
+            model.load_state_dict(torch.load(CHECKPOINT_PATH,map_location=torch.device('cpu'))["state_dict"],strict=False)
 
     lr_monitor = LearningRateMonitor(logging_interval='step')
 
 
 
     checkpoint_callback = ModelCheckpoint(
-                filename='{epoch}-{val_total_loss:.2f}-{other_metric:.2f}',
-                    monitor= 'val_total_loss',
-                        save_top_k = 5)
+            filename='{epoch}-{val_acc_epoch:.2f}-{val_total_loss_epoch:.2f}-{val_loss_generation_epoch:.2f}-{val_classification_loss_epoch:.2f}',
+                    monitor= 'val_acc_epoch',
+                        save_top_k = 10,
+                        save_last=True,
+                        mode="max")
 
-    early_stopping_callback = EarlyStopping(monitor="val_total_loss", mode="min",patience=5)
+    early_stopping_callback = EarlyStopping(monitor="val_acc_epoch", mode="max",patience=10)
 
     # All our models are trained using the AdamW optimizer with global norm clipping of 1
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
                         accelerator=ACCELERATOR, devices=DEVICES,
                         callbacks=[lr_monitor, checkpoint_callback,early_stopping_callback],
-                        gradient_clip_val=1.0)
+                        gradient_clip_val=GRADIENT_CLIP_VAL)
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)

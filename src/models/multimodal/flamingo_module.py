@@ -1,10 +1,11 @@
+from audioop import bias
 import clip
 import torch
 from .clip_model import VisionTransformer
 from torch import nn as nn
 import pytorch_lightning as pl
 from .flamingo_palm_original import FlamingoPaLM
-from .flamingo_model import FlamingoModel
+from .flamingo_model import FlamingoModel, LayerNorm
 from transformers import (
     get_linear_schedule_with_warmup,
     get_constant_schedule_with_warmup,
@@ -36,21 +37,34 @@ class FlamingoModule(pl.LightningModule):
         classification_num_classes = 332,
         flamingo_mode = True,
         label_smoothing = 0.1,
+        token_label_smoothing = 0.0,
+        learning_rate = 1e-4,
+        use_image_embeddings = False,
+        train_embedding_layer = True,
+        classifier_dropout = 0.5,
+        use_positional_embedding = True
+
     ):
 
         super().__init__()
 
         self.save_hyperparameters()
         self.warmup_steps = warmup_steps
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = "cpu"
         self.classification_mode= classification_mode
         self.num_classification_classes = classification_num_classes
         self.flamingo_mode = flamingo_mode
         self.label_smoothing = label_smoothing
+        self.token_label_smoothing = token_label_smoothing
+        self.learning_rate = learning_rate
+        self.use_image_embeddings = use_image_embeddings
+        self.classifier_dropout = classifier_dropout
+        self.use_positional_embedding = use_positional_embedding
 
         if image_encoder == "clip" and pretrained_clip_path is not None:
-            print("Pretrained clip is being loaded")
+            print("Clip architecture is being loaded")
             model, _ = clip.load("ViT-B/32", device=device)
+            print("Clip pretrained weights are being loaded")
             model.load_state_dict(
                 torch.load(pretrained_clip_path, map_location=device)["state_dict"]
             )
@@ -106,27 +120,38 @@ class FlamingoModule(pl.LightningModule):
             img_encoder_outdim=self.img_encoder_outdim,
             pretrained_gpt2_path=pretrained_gpt2_path,
             classification_mode = self.classification_mode,
-            flamingo_mode = self.flamingo_mode
+            flamingo_mode = self.flamingo_mode,
+            train_embedding_layer=train_embedding_layer,
+            use_positional_embedding = self.use_positional_embedding
         )
 
         if self.classification_mode:
             #self.classifier = nn.Linear(dim,self.num_classification_classes )
-            #nn.init.normal_(self.classifier.weight, std=0.01)
-            self.classifier = nn.Sequential(
-                nn.Linear(dim, 4096),
-                nn.ReLU(True),
-                nn.Dropout(),
-                nn.Linear(4096, 4096),
-                nn.ReLU(True),
-                nn.Dropout(),
-                nn.Linear(4096, self.num_classification_classes)
-            )
+            #nn.init.normal_(self.classifier.weight, std=0.02)
+            if self.use_image_embeddings:
+                self.classifier = nn.Sequential(
+                    LayerNorm(2*dim),
+                    #nn.Linear(dim, 4096),
+                    #nn.ReLU(),
+                    nn.Dropout(0.1),
+                    #nn.Linear(4096, self.num_classification_classes),
+                    nn.Linear(2*dim, self.num_classification_classes),
+                )
+            else:
+                self.classifier = nn.Sequential(
+                    LayerNorm(dim),
+                    #nn.Linear(dim, 4096),
+                    #nn.ReLU(),
+                    nn.Dropout(self.classifier_dropout),
+                    #nn.Linear(4096, self.num_classification_classes),
+                    nn.Linear(dim, self.num_classification_classes),
+                )
 
     def forward(self, x, return_attn=False):
         # in lightning, forward defines the prediction/inference actions
         images = x["image"]
         input_tokens = x["input_ids"]
-        index_eoq = x["index_eoq"]
+        
         batch_size = images.shape[0]
         
         if return_attn:
@@ -135,7 +160,21 @@ class FlamingoModule(pl.LightningModule):
             )
             return flamingo_logits, attns
         else:
-            if self.classification_mode:
+            if self.classification_mode and self.use_image_embeddings:
+                index_eoq = x["index_eoq"]
+                flamingo_logits, token_embeds, image_embeddings = self.flamingo_palm(
+                    input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn, 
+                    return_image_embeddings = self.use_image_embeddings
+                )
+
+                eoq_embeds = token_embeds[torch.arange(batch_size), index_eoq]
+                classification_logits = self.classifier(torch.cat([image_embeddings.squeeze(1), eoq_embeds],dim=1))
+                classification_logits = torch.softmax(classification_logits, dim=1)
+
+                return flamingo_logits, classification_logits
+
+            elif self.classification_mode:
+                index_eoq = x["index_eoq"]
                 flamingo_logits, token_embeds = self.flamingo_palm(
                     input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn
                 )
@@ -156,12 +195,23 @@ class FlamingoModule(pl.LightningModule):
         images = batch["image"]
         input_tokens = batch["input_ids"]
         targets = batch["targets"]
-        index_eoq = batch["index_eoq"]
-        class_labels = batch["label"]
         batch_size = images.shape[0]
 
+        if self.classification_mode and self.use_image_embeddings:
+            class_labels = batch["label"]
+            index_eoq = batch["index_eoq"]
+            flamingo_logits, token_embeds, image_embeddings = self.flamingo_palm(
+                    input_tokens.squeeze(1), images.unsqueeze(1), 
+                    return_image_embeddings = self.use_image_embeddings
+                )
+
+            eoq_embeds = token_embeds[torch.arange(batch_size), index_eoq]
+            classification_logits = self.classifier(torch.cat([image_embeddings.squeeze(1), eoq_embeds],dim=1))
+
+        elif self.classification_mode:
+            class_labels = batch["label"]
+            index_eoq = batch["index_eoq"]
         
-        if self.classification_mode:
             flamingo_logits, token_embeds = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1)
             )
@@ -171,16 +221,14 @@ class FlamingoModule(pl.LightningModule):
             input_tokens.squeeze(1), images.unsqueeze(1)
         )
 
-        train_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.label_smoothing)(
+        train_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.token_label_smoothing)(
             torch.permute(flamingo_logits, (0, 2, 1)), targets.squeeze(1)
         )
         # Only non pad tokens are considered in the loss
         train_loss = torch.sum(train_loss * batch["token_type_ids"]) / (
             torch.sum(batch["token_type_ids"]) * batch_size
         )
-        # Logging to TensorBoard by default
-        # self.log("train_loss", train_loss)
-        # comet_logs = {'train_loss': train_loss}
+
         self.log(
             "train_loss_generation",
             train_loss,
@@ -189,9 +237,9 @@ class FlamingoModule(pl.LightningModule):
             prog_bar=True,
             logger=True,
         )
-                # Classification Loss
+        # Classification Loss
         if self.classification_mode:
-            train_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
+            train_classification_loss = nn.CrossEntropyLoss(label_smoothing=self.label_smoothing)(classification_logits, class_labels)
 
             self.log(
                 "train_classification_loss",
@@ -210,20 +258,28 @@ class FlamingoModule(pl.LightningModule):
                 prog_bar=True,
                 logger=True,
             )
+              # Calculate validation accuracy
+            train_acc = (torch.argmax(classification_logits, dim=1) == class_labels).float().mean()
+            self.log(
+                "train_acc",
+                train_acc,
+                on_step=True,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+                sync_dist=True
+            )
             # self.loggers[-1].experiment.log_metrics(comet_logs, step=self.global_step)
             self.logger.experiment.add_scalars(
                 "losses", {"train_loss": train_loss + train_classification_loss}, self.global_step
             )
-            # self.logger.experiment.add_scalar("train_loss", train_loss,self.global_step)
-            # self.logger.experiment.add_scalar('lr', self.trainer.lr_schedulers[0]["scheduler"].get_lr()[0], self.global_step)
 
             return {"loss": train_loss + train_classification_loss}
-        
+
         else:
             self.logger.experiment.add_scalars(
                 "losses", {"train_loss": train_loss}, self.global_step
             )
-
             return {"loss": train_loss}
 
 
@@ -235,11 +291,23 @@ class FlamingoModule(pl.LightningModule):
         images = batch["image"]
         input_tokens = batch["input_ids"]
         targets = batch["targets"]
-        index_eoq = batch["index_eoq"]
-        class_labels = batch["label"]
         batch_size = images.shape[0]
 
-        if self.classification_mode:
+        if self.classification_mode and self.use_image_embeddings:
+            class_labels = batch["label"]
+            index_eoq = batch["index_eoq"]
+            flamingo_logits, token_embeds, image_embeddings = self.flamingo_palm(
+                    input_tokens.squeeze(1), images.unsqueeze(1), 
+                    return_image_embeddings = self.use_image_embeddings
+                )
+
+            eoq_embeds = token_embeds[torch.arange(batch_size), index_eoq]
+
+            classification_logits = self.classifier(torch.cat([image_embeddings.squeeze(1), eoq_embeds],dim=1))
+
+        elif self.classification_mode:
+            class_labels = batch["label"]
+            index_eoq = batch["index_eoq"]
             flamingo_logits, token_embeds = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1)
             )
@@ -251,7 +319,7 @@ class FlamingoModule(pl.LightningModule):
 
 
 
-        val_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.label_smoothing)(
+        val_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.token_label_smoothing)(
             torch.permute(flamingo_logits, (0, 2, 1)), targets.squeeze(1)
         )
         val_loss = torch.sum(val_loss * batch["token_type_ids"]) / (
@@ -269,7 +337,7 @@ class FlamingoModule(pl.LightningModule):
         )
         if self.classification_mode:
                     # Classification Loss
-            val_classification_loss = nn.CrossEntropyLoss()(classification_logits, class_labels)
+            val_classification_loss = nn.CrossEntropyLoss(label_smoothing=self.label_smoothing)(classification_logits, class_labels)
 
             self.log(
                 "val_classification_loss",
@@ -290,17 +358,16 @@ class FlamingoModule(pl.LightningModule):
                 logger=True,
             )
             # Calculate validation accuracy
-            if self.classification_mode:
-                val_acc = (torch.argmax(classification_logits, dim=1) == class_labels).float().mean()
-                self.log(
-                    "val_acc",
-                    val_acc,
-                    on_step=True,
-                    on_epoch=True,
-                    prog_bar=True,
-                    logger=True,
-                    sync_dist=True
-                )
+            val_acc = (torch.argmax(classification_logits, dim=1) == class_labels).float().mean()
+            self.log(
+                "val_acc",
+                val_acc,
+                on_step=True,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+                sync_dist=True
+            )
 
             self.logger.experiment.add_scalars(
                 "losses", {"validation_loss": val_loss+ val_classification_loss}, self.global_step
@@ -316,22 +383,22 @@ class FlamingoModule(pl.LightningModule):
 
         
 
-    def  predict_step(self, batch, batch_idx):
-        # val defined the training loop.
-        # It is independent of forward
+    def  predict_step(self, batch):
+        # @TODO implement predict step
         images = batch["image"]
         input_tokens = batch["input_ids"]
-        targets = batch["targets"]
-        index_eoq = batch["index_eoq"]
-        class_labels = batch["label"]
+
+
         batch_size = images.shape[0]
 
         if self.classification_mode:
+            class_labels = batch["label"]
+            index_eoq = batch["index_eoq"]
             flamingo_logits, token_embeds = self.flamingo_palm(
                 input_tokens.squeeze(1), images.unsqueeze(1)
             )
-            classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
-            return flamingo_logits, classification_logits
+            #classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
+            return flamingo_logits #, classification_logits
         else:
             flamingo_logits = self.flamingo_palm(
             input_tokens.squeeze(1), images.unsqueeze(1)
@@ -373,7 +440,7 @@ class FlamingoModule(pl.LightningModule):
         {"params": [p for n, p in params if n.startswith('flamingo_palm.perceiver_resampler')], 'weight_decay': 0},
         {"params": [p for n, p in params if not n.startswith('flamingo_palm.perceiver_resampler') ],'weight_decay': 0.01 },
         ]
-        optimizer = torch.optim.AdamW(grouped_parameters, lr=1e-4)
+        optimizer = torch.optim.AdamW(grouped_parameters, lr=self.learning_rate)
 
         scheduler = get_constant_schedule_with_warmup(
             optimizer,

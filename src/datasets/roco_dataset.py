@@ -89,7 +89,7 @@ class RocoDataset(Dataset):
             self.tokenizer = None
 
         if tokenizer_add_special_tokens:
-            special_tokens_dict = {'additional_special_tokens': ['<image>', '<EOC>']}
+            special_tokens_dict = {'additional_special_tokens': ['<image>', '<EOC>','<EOQ>']}
             # Set the beginning of sentence token to <BOS>
             #self.tokenizer.bos_token = '<BOS>'
             num_added_toks = self.tokenizer.add_special_tokens(special_tokens_dict)

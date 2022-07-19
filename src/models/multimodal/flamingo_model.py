@@ -221,7 +221,10 @@ class FlamingoModel(nn.Module):
         pretrained_gpt2_path=None,
         classification_mode = False,
         flamingo_mode = True,
-        context_size = 256
+        context_size = 256,
+        train_embedding_layer = True,
+        use_positional_embedding = True
+
     ):
 
         super().__init__()
@@ -237,6 +240,8 @@ class FlamingoModel(nn.Module):
         self.img_encoder_outdim = img_encoder_outdim
         self.img_encoder = img_encoder
         self.flamingo_mode = flamingo_mode
+        self.train_embedding_layer=train_embedding_layer
+        self.use_positional_embedding = use_positional_embedding
         freeze_model_and_make_eval_(self.img_encoder)
 
         self.perceiver_resampler = PerceiverResampler(
@@ -288,7 +293,7 @@ class FlamingoModel(nn.Module):
 
         # they used embedding weight tied projection out to logits, not common, but works
         self.to_logits[-1].weight = self.token_emb.weight
-        nn.init.normal_(self.token_emb.weight, std=0.02)
+        #nn.init.normal_(self.token_emb.weight, std=0.02)
 
     def load_gpt2_weights(self, path):
         """
@@ -319,14 +324,17 @@ class FlamingoModel(nn.Module):
         self.layers.load_state_dict(model_dict)
 
         # Load Embedding Weights
-        self.token_emb.weight.data[: self.num_tokens - 4] = state_dict["wte.weight"]
+        if self.num_tokens == 50261:
+            self.token_emb.weight.data[: self.num_tokens - 4] = state_dict["wte.weight"]
+        elif self.num_tokens == 50260:
+            self.token_emb.weight.data[: self.num_tokens - 3] = state_dict["wte.weight"]
+
         print(
             "Loaded GPT2 weights and Embeddings",
             "num_weights loaded : ",
             len(pretrained_dict.keys()),
         )
 
-        self.train_embedding_layer=True
             # automatically take care of freezing or unfreezing depending on what is passed in
         if self.flamingo_mode:
             # in flamingo mode, freeze everything but perceiver and gated cross attention
@@ -351,16 +359,18 @@ class FlamingoModel(nn.Module):
         unfreeze_all_layers_(self.wpe)
 
 
-    def forward(self, text, images=None, image_embeds=None, return_attn=False):
+    def forward(self, text, images=None, image_embeds=None, return_attn=False, return_image_embeddings=False):
         batch, device = text.shape[0], text.device
 
         # derive the media token ids (as a boolean tensor), for calculating the masked cross attention
 
         media_locations = text == self.media_token_id
 
-        pos_ids = torch.arange(0, text.size(-1)).unsqueeze(0)
+        
         text_tokens = self.token_emb(text)
-        text_tokens = self.drop(text_tokens + self.wpe(pos_ids))
+        if self.use_positional_embedding:
+            pos_ids = torch.arange(0, text.size(-1),device=device).unsqueeze(0)
+            text_tokens = self.drop(text_tokens + self.wpe(pos_ids))
 
         assert not (exists(images) and exists(image_embeds))
 
@@ -385,6 +395,7 @@ class FlamingoModel(nn.Module):
                 image_embeds = self.img_encoder_outdim_layer(image_embeds)
 
             image_embeds = rearrange(image_embeds, "(b t) ... -> b t ...", b=batch)
+            image_encoder_output = image_embeds.clone()
 
         if exists(image_embeds):
             image_embeds = self.perceiver_resampler(image_embeds)
@@ -403,7 +414,9 @@ class FlamingoModel(nn.Module):
         if return_attn:
             return self.to_logits(text_tokens), attns
         else:
-            if self.classification_mode:
-                return self.to_logits(text_tokens), text_tokens
+            if self.classification_mode and return_image_embeddings:
+                return self.to_logits(text_tokens), text_tokens, image_encoder_output
+            elif self.classification_mode:
+                return self.to_logits(text_tokens), text_tokens, 
             else:
                 return self.to_logits(text_tokens)
