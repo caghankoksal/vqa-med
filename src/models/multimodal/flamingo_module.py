@@ -148,7 +148,7 @@ class FlamingoModule(pl.LightningModule):
         # in lightning, forward defines the prediction/inference actions
         images = x["image"]
         input_tokens = x["input_ids"]
-        index_eoq = x["index_eoq"]
+        
         batch_size = images.shape[0]
         
         if return_attn:
@@ -158,6 +158,7 @@ class FlamingoModule(pl.LightningModule):
             return flamingo_logits, attns
         else:
             if self.classification_mode and self.use_image_embeddings:
+                index_eoq = x["index_eoq"]
                 flamingo_logits, token_embeds, image_embeddings = self.flamingo_palm(
                     input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn, 
                     return_image_embeddings = self.use_image_embeddings
@@ -170,6 +171,7 @@ class FlamingoModule(pl.LightningModule):
                 return flamingo_logits, classification_logits
 
             elif self.classification_mode:
+                index_eoq = x["index_eoq"]
                 flamingo_logits, token_embeds = self.flamingo_palm(
                     input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn
                 )
