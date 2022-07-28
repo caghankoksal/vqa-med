@@ -26,13 +26,57 @@ You can find out available pre-trained Models under the [following link](https:/
 
 
 # Model Architecture
-Using Flamingo's architecture elements, we built a model capable of taking an Xray image and any question as inputs in order to generate an answer to the asked question. A simplified overview of our model architecture is given in the following figure :   
+Using Flamingo's architecture elements, we built a model capable of taking an Xray image and any question as inputs in order to generate an answer to the asked question. 
+<p> A simplified overview of our model architectures is given in the following figures :
 
-![image](docs/imgs/flamingo-own.jpg)
+### Without Classification Head:
+![image](docs/imgs/model-final-no-class_head.png)
+
+### With Classification Head:
+![image](docs/imgs/model-final.png)
 
 # Training and Testing
-TOOD: For the training process, we trained our model for ..... on ...... using the dataset .............
-TODO: soe test results
+
+## Backbone Flamingo Training MIMIC-CXR
+
+- *Hardware*: 1 A40 GPU, 200 epochs with early stop on val loss (at around 140 each experiment)
+- *Learning Rate (LR)*: 1e-4
+- *LR Warmup*: 863 Steps
+- *Loss*: Cross Entropy Loss 
+
+## Fine-tune on VQA-RAD
+Check out [flamingo_clip_gpt2_vqa_rad_run.py](https://gitlab.lrz.de/CAMP_IFL/diva/mlmi-vqa/-/blob/main/notebooks/flamingo_clip_gpt2_vqa_rad_run.py)
+
+- *Hardware*: 1 A40 GPU, 80 epochs with early stop on val loss (at around 40 each experiment)
+- *Duration*: ~30 mins
+- *LR*: 1e-5
+- *LR Warmup*: 30 Steps
+- *Loss*: Cross Entropy Loss 
+
+- **Testing**: 
+check out [vqaRAD_flamingo_clip_gpt2_infer.ipynb](https://gitlab.lrz.de/CAMP_IFL/diva/mlmi-vqa/-/blob/main/notebooks/playground/vqaRAD_flamingo_clip_gpt2_infer.ipynb): 
+    -   On identical answers (GT answer: “no”, predicted answer: “no” -> true positive)
+    -   **On embeddings**: Used tokens before the last linear layer for GT and predicted answer &rarr; Cosine Similarity
+
+## Fine-tune on ImageCLEF 
+Check out [flamingo_clip_gpt2_imageclef_run.py](https://gitlab.lrz.de/CAMP_IFL/diva/mlmi-vqa/-/blob/main/notebooks/flamingo_clip_gpt2_imageclef_run.py):
+
+- *Hardware*: 1 A40 GPU, 200 epochs with early stop on val loss (at around 110 each experiment)
+- *Duration*: ~3 hours
+- *LR*: 1e-4
+- *LR Warmup*: 30 Steps
+- *Loss*: Cross Entropy Loss 
+
+- **Testing**: 
+check out [Imageclef_flamingo_clip_gpt2_playground.ipynb](https://gitlab.lrz.de/CAMP_IFL/diva/mlmi-vqa/-/blob/main/notebooks/imageclef_flamingo_clip_gpt2_playground.ipynb):
+    - Identical Answer on identical answers (Ground Truth answer: “no”, predicted answer: “no” -> true positive)
+    - Classification Accuracy
+    - Evaluation: Accuracy, BLEU score
+
+
+
+
+
 
 # Getting started
 
@@ -49,28 +93,37 @@ git clone https://gitlab.lrz.de/CAMP_IFL/diva/mlmi-vqa
 conda env create -f environment.yml
 conda activate mlmi_caghan
 ```
-- [ ] Check the notebooks for usage examples
+- [ ] Check the playground notebooks for usage examples
 
 
 # Demo and Deploy
 
-You can check and try out our model in our demo page using this [Hugging Face Space](https://huggingface.co/spaces/alamellouli/demo-mlmi-vqa)
+You can check and try out our model in our demo page using the QR code
 
+
+
+***
 ***
 
 ## Future Work
-TODO
+-   Domain Specific Language Decoder
+-   Domain Specific Tokenizer
+-   Decoder with similar number of parameters to Chinchilla Language Family
+-   Optimize current approach
+-   Qualitative evaluation and comparison with other works 
+-   Visualization of Attention Maps
+
 
 
 ## Contributing
-At the moment still closed for contributions.
+At the moment we are still closed for contributions.
 
 
 ## Acknowledgments
 
 Authors: **Fabian Scherer - Andrei Mancu - Alaeddine Mellouli - Çağhan Köksal**
 
-We thank the MLMI team and both Matthias Keicher and Kamilia Zaripova for their help and support.
+We thank the MLMI team and both *Matthias Keicher* and *Kamilia Zaripova* for their help and support.
 
 ## License
 Private Repository until further development.
