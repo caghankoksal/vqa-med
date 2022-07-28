@@ -268,6 +268,3 @@ class MIMICCXRDataModule(pl.LightningDataModule):
                             'txt_path': txt_path}
                         )
         return valid_samples
-                
-                    
-

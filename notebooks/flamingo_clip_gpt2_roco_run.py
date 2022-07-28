@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     if os.getcwd().startswith('/home/mlmi-matthias'):
         ACCELERATOR = "gpu"
-        DEVICES = [4,5,6,7]
+        DEVICES = [3,5,7]
         PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
         PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
         ROOT = '/home/mlmi-matthias/roco-dataset/data'

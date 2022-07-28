@@ -52,16 +52,18 @@ if __name__ == '__main__':
     # Hyperparameters
     NUM_DATA_WORKERS  = 2
     ONLY_IMAGES = False
-    BATCH_SIZE = 96
+    BATCH_SIZE = 32
     NUM_EPOCHS = 120
     LIMIT_NUM_SAMPLES = None
     DATASET = "IMAGECLEF"
 
     if os.getcwd().startswith('/home/mlmi-matthias'):
         ACCELERATOR = "gpu"
-        DEVICES = [6,7]
-        PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
-        PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
+        DEVICES = [7]
+        #PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
+        #PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
+        PRETRAINED_GPT2_PATH = None
+        PRETRAINED_CLIP_PATH = None
         MIMIC_CXR_DCM_PATH = '/home/mlmi-matthias/physionet.org/files/mimic-cxr/2.0.0/files/'
         MIMIC_CXR_JPG_PATH = "/home/mlmi-matthias/physionet.org/files/mimic-cxr-jpg/2.0.0/files/"
         SPLIT_PATH = '/home/mlmi-matthias/Caghan/mlmi-vqa/data/external/'
@@ -130,7 +132,7 @@ if __name__ == '__main__':
     IMAGE_ENCODER = "clip"
     CLASSIFICATION_MODE = True
     NUM_CLASSES = 332
-    FLAMINGO_MODE = True
+    FLAMINGO_MODE = False
     LABEL_SMOOTHING = 0.2
     # Label smoothing for classification task
     TOKEN_LABEL_SMOOTHING = 0.0
@@ -138,7 +140,7 @@ if __name__ == '__main__':
     LEARNING_RATE = 1e-4
     USE_IMAGE_EMBEDDINGS = True
     TRAIN_EMBEDDING_LAYER = True
-    CLASSIFIER_DROPOUT = 0.5
+    CLASSIFIER_DROPOUT = 0.2
 
 
     hyperparams = {
@@ -170,7 +172,7 @@ if __name__ == '__main__':
     print_hyperparams(hyperparams)
 
     model = FlamingoModule(**hyperparams)
-    START_FROM_CHECKPOINT = True
+    START_FROM_CHECKPOINT = False
 
     if START_FROM_CHECKPOINT:
         print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
@@ -182,15 +184,26 @@ if __name__ == '__main__':
     lr_monitor = LearningRateMonitor(logging_interval='step')
 
 
-
-    checkpoint_callback = ModelCheckpoint(
-            filename='{epoch}-{val_acc_epoch:.2f}-{val_total_loss_epoch:.2f}-{val_loss_generation_epoch:.2f}-{val_classification_loss_epoch:.2f}',
+    if CLASSIFICATION_MODE:
+            
+        checkpoint_callback = ModelCheckpoint(
+                    filename='{epoch}-{val_acc_epoch:.2f}-{val_total_loss_epoch:.2f}-{val_loss_generation_epoch:.2f}-{val_classification_loss_epoch:.2f}',
                     monitor= 'val_acc_epoch',
-                        save_top_k = 10,
-                        save_last=True,
-                        mode="max")
+                    save_top_k = 10,
+                    save_last=True,
+                    mode="max")
 
-    early_stopping_callback = EarlyStopping(monitor="val_acc_epoch", mode="max",patience=10)
+ 
+        early_stopping_callback = EarlyStopping(monitor="val_acc_epoch", mode="max",patience=10)
+    else:
+        checkpoint_callback = ModelCheckpoint(
+                filename='{epoch}-{val_loss_generation_epoch:.2f}',
+                monitor= 'val_loss_generation_epoch',
+                save_top_k = 10, 
+                save_last=True,
+                mode="min")
+        early_stopping_callback = EarlyStopping(monitor="val_loss_generation_epoch", mode="min",patience=10)
+    #early_stopping_callback = EarlyStopping(monitor="val_acc_epoch", mode="max",patience=10)
 
     # All our models are trained using the AdamW optimizer with global norm clipping of 1
     trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
