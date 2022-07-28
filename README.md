@@ -99,6 +99,7 @@ conda activate mlmi_caghan
 # Demo and Deploy
 
 You can check and try out our model in our demo page using the QR code
+To run the demo check notebooks/demo_imageclef.ipynb
 
 
 
