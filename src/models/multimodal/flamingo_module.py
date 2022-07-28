@@ -81,21 +81,18 @@ class FlamingoModule(pl.LightningModule):
 
         elif image_encoder == "clip" and pretrained_clip_path is None:
             print("Vit is started from scratch")
-            vit = ViT(
-                image_size=224,
+            image_encoder = VisionTransformer(
+                input_resolution=224,
                 patch_size=32,
-                num_classes=1000,
-                dim=dim,
-                depth=6,
-                heads=16,
-                mlp_dim=2048,
-                dropout=0.1,
-                emb_dropout=0.1,
+                width=768,
+                layers=12,
+                heads=8,
+                output_dim=512,
             )
+            self.img_encoder_outdim = 512
             print("Vit is initialized")
 
-            image_encoder = Extractor(vit, return_embeddings_only=True)
-            self.img_encoder_outdim = dim
+            #self.img_encoder_outdim = dim
         elif image_encoder == "densenet":
             image_encoder = xrv.models.DenseNet(weights="densenet121-res224-mimic_nb")
             self.img_encoder_outdim = None
