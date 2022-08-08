@@ -91,7 +91,7 @@ git clone https://gitlab.lrz.de/CAMP_IFL/diva/mlmi-vqa
 
 ```
 conda env create -f environment.yml
-conda activate mlmi_caghan
+conda activate mlmi
 ```
 - [ ] Check the playground notebooks for usage examples
 
