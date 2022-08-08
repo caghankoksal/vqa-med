@@ -1,4 +1,4 @@
-name: mlmi_caghan
+name: mlmi
 channels:
   - pytorch
   - defaults
