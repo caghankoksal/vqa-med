@@ -1,3 +1,5 @@
+# Adapted from: Lucidrains -> https://github.com/lucidrains/flamingo-pytorch  #I will hack and update necessary parts for my use case
+# helper functions
 import torch
 import torch.nn.functional as F
 from einops import rearrange
@@ -5,9 +7,8 @@ from torch import einsum, nn
 from ..text.gpt2_layers import TransformerBlockGPT2
 from ..text.bert_layers import TransformerBlockBERT
 from .flamingo_pytorch_original import GatedCrossAttentionBlock, PerceiverResampler
+from transformers import BertTokenizer, BertModel
 
-# Adapted from: Lucidrains -> https://github.com/lucidrains/flamingo-pytorch  #I will hack and update necessary parts for my use case
-# helper functions
 
 
 def exists(val):
@@ -231,8 +232,25 @@ class FlamingoModel(nn.Module):
         self.num_tokens = num_tokens
         self.dim = dim
         self.classification_mode = classification_mode
-        self.token_emb = nn.Embedding(num_tokens, dim)
-        self.wpe = nn.Embedding(context_size, dim)
+        self.language_model = language_model
+
+        if language_model == 'gpt2':
+            self.token_emb = nn.Embedding(num_tokens, dim)
+            self.wpe = nn.Embedding(context_size, dim)
+        elif language_model == 'bert':
+            base_model = BertModel.from_pretrained('bert-base-uncased')
+            bert_model = nn.Sequential(*list(base_model.children())[0:])
+            self.bert_embedding = bert_model[0]
+            #torch.Size([30522, 768])
+            bert_weights = self.bert_embedding.word_embeddings.weight
+            self.bert_embedding.word_embeddings = nn.Embedding(num_tokens, dim)
+    
+            self.bert_embedding.word_embeddings.weight.data[: self.num_tokens - 4] = bert_weights
+            
+        
+            print('Bert Embeddings are loaded ')
+
+
         self.drop = nn.Dropout(0.1)
         self.media_token_id = (
             media_token_id  # you need to reserve a special token id for media
@@ -294,9 +312,11 @@ class FlamingoModel(nn.Module):
         if language_model == "gpt2" and pretrained_gpt2_path is not None:
             self.load_gpt2_weights(pretrained_gpt2_path)
 
-        # they used embedding weight tied projection out to logits, not common, but works
-        self.to_logits[-1].weight = self.token_emb.weight
-        #nn.init.normal_(self.token_emb.weight, std=0.02)
+        weight_tie_gpt = True
+        if language_model == "gpt2" and weight_tie_gpt==True:
+            # they used embedding weight tied projection out to logits, not common, but works
+            self.to_logits[-1].weight = self.token_emb.weight
+            #nn.init.normal_(self.token_emb.weight, std=0.02)
 
     def load_gpt2_weights(self, path):
         """
@@ -362,7 +382,8 @@ class FlamingoModel(nn.Module):
         unfreeze_all_layers_(self.wpe)
 
 
-    def forward(self, text, images=None, image_embeds=None, return_attn=False, return_image_embeddings=False, return_embeds=False):
+    def forward(self, text, images=None, image_embeds=None, token_type_ids= None,
+                 return_attn=False, return_image_embeddings=False, return_embeds=False):
         batch, device = text.shape[0], text.device
 
         # derive the media token ids (as a boolean tensor), for calculating the masked cross attention
@@ -370,10 +391,15 @@ class FlamingoModel(nn.Module):
         media_locations = text == self.media_token_id
 
         
-        text_tokens = self.token_emb(text)
-        if self.use_positional_embedding:
-            pos_ids = torch.arange(0, text.size(-1),device=device).unsqueeze(0)
-            text_tokens = self.drop(text_tokens + self.wpe(pos_ids))
+        if self.language_model == 'gpt2':
+            text_tokens = self.token_emb(text)
+            if self.use_positional_embedding:
+                pos_ids = torch.arange(0, text.size(-1),device=device).unsqueeze(0)
+                text_tokens = self.drop(text_tokens + self.wpe(pos_ids))
+
+        elif self.language_model=='bert':
+            text_tokens = self.bert_embedding(input_ids=text, token_type_ids=token_type_ids, position_ids=None)
+
 
         assert not (exists(images) and exists(image_embeds))
 
