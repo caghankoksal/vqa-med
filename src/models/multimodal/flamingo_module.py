@@ -209,6 +209,7 @@ class FlamingoModule(pl.LightningModule):
         # It is independent of forward
         images = batch["image"]
         input_tokens = batch["input_ids"]
+        token_type_ids = batch["token_type_ids"] 
         targets = batch["targets"]
         batch_size = images.shape[0]
 
@@ -216,7 +217,7 @@ class FlamingoModule(pl.LightningModule):
             class_labels = batch["label"]
             index_eoq = batch["index_eoq"]
             flamingo_logits, token_embeds, image_embeddings = self.flamingo_palm(
-                    input_tokens.squeeze(1), images.unsqueeze(1), 
+                    input_tokens.squeeze(1), images.unsqueeze(1), token_type_ids.unsqueeze(1),
                     return_image_embeddings = self.use_image_embeddings
                 )
 
@@ -228,12 +229,12 @@ class FlamingoModule(pl.LightningModule):
             index_eoq = batch["index_eoq"]
         
             flamingo_logits, token_embeds = self.flamingo_palm(
-                input_tokens.squeeze(1), images.unsqueeze(1)
+                input_tokens.squeeze(1), images.unsqueeze(1), token_type_ids.unsqueeze(1)
             )
             classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
         else:
             flamingo_logits = self.flamingo_palm(
-            input_tokens.squeeze(1), images.unsqueeze(1)
+            input_tokens.squeeze(1), images.unsqueeze(1), token_type_ids.unsqueeze(1),
         )
 
         train_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.token_label_smoothing)(
