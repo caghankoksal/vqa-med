@@ -16,6 +16,7 @@ You can find out available pre-trained Models under the [following link](https:/
 - [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/download.html) (Virtual Environment)
 
 # Table Of Contents
+-  [Datasets](#dataset)
 -  [Model Architecture](#model-architecture)
 -  [Training and Testing](#training-and-testing)
 -  [Getting Started](#getting-started)
@@ -24,6 +25,14 @@ You can find out available pre-trained Models under the [following link](https:/
 -  [Contributing](#contributing)
 -  [Acknowledgments](#acknowledgments)
 
+# Datasets
+For Backbone training used datasets are as follows:
+- [Roco](https://github.com/razorx89/roco-dataset)
+- [Mimic-CXR] (https://physionet.org/content/mimic-cxr/2.0.0/)
+
+For Medical VQA
+- [Imageclef2019] You can download from here(https://github.com/Rodger-Huang/SYSU-HCP-at-ImageCLEF-VQA-Med-2021)
+- [VQA-RAD] (https://osf.io/89kps/)
 
 # Model Architecture
 Using Flamingo's architecture elements, we built a model capable of taking an Xray image and any question as inputs in order to generate an answer to the asked question. 
