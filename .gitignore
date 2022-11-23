@@ -174,3 +174,4 @@ notebooks/lightning_logs
 data/external/*.json
 lightning_logs/*
 wandb/*
+data/external/
