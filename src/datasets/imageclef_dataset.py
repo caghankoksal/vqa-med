@@ -71,6 +71,9 @@ class MedLTDataset(Dataset):
         elif tokenizer == "gpt2":
             self.tokenizer = AutoTokenizer.from_pretrained("gpt2")
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+        elif tokenizer == "bert-base-uncased":
+            self.tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+            self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
         elif tokenizer == "scratch":
             # TODO : Implement a scratch tokenizer
@@ -81,7 +84,7 @@ class MedLTDataset(Dataset):
         if tokenizer_add_special_tokens:
             special_tokens_dict = {'additional_special_tokens': ['<image>', '<EOC>','<EOQ>']}
             # Set the beginning of sentence token to <BOS>
-            #self.tokenizer.bos_token = '<BOS>'
+            self.tokenizer.bos_token = '<BOS>'
             num_added_toks = self.tokenizer.add_special_tokens(special_tokens_dict)
 
 
@@ -147,9 +150,17 @@ class MedLTDataset(Dataset):
 
         if self.return_idx_answer_eoc:
             # 3280 is the index of the : token since we use Answer: 
-            index_of_answer = (input_ids==3280).nonzero()[0][-1].item()
-            index_of_eoc = (input_ids==50259).nonzero()[0][-1].item()
-            index_of_eoq = (input_ids==50260).nonzero()[0][-1].item()
+            #index_of_answer = (input_ids==3280).nonzero()[0][-1].item()
+            # Index of  ':' token which comes after answer: so we use its embedding for classifcation
+            ans_token_id = self.tokenizer.convert_tokens_to_ids(':')
+            index_of_answer = (input_ids==ans_token_id).nonzero()[0][-1].item()
+            # End of Chunk
+            eoc_token_id = self.tokenizer.convert_tokens_to_ids('<EOC>')
+            index_of_eoc = (input_ids==eoc_token_id).nonzero()[0][-1].item()
+            # # End of Question
+            eoq_token_id = self.tokenizer.convert_tokens_to_ids('<EOQ>')
+            index_of_eoq = (input_ids==eoq_token_id).nonzero()[0][-1].item()
+            
             sample["index_answer"] = index_of_answer
             sample["index_eoc"] = index_of_eoc
             sample["index_eoq"] = index_of_eoq

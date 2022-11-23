@@ -20,14 +20,14 @@ def gelu(x):
 
 
 class MultiHeadedSelfAttention(nn.Module):
-    def __init__(self, args, causal = False):
+    def __init__(self, hidden_size, hidden_dropout_prob=0.3, heads=12, causal = False):
         super(MultiHeadedSelfAttention,self).__init__()
-        self.proj_q = nn.Linear(args.hidden_size, args.hidden_size)
-        self.proj_k = nn.Linear(args.hidden_size, args.hidden_size)
-        self.proj_v = nn.Linear(args.hidden_size, args.hidden_size)
-        self.drop = nn.Dropout(args.hidden_dropout_prob)
+        self.proj_q = nn.Linear(hidden_size, hidden_size)
+        self.proj_k = nn.Linear(hidden_size, hidden_size)
+        self.proj_v = nn.Linear(hidden_size, hidden_size)
+        self.drop = nn.Dropout(hidden_dropout_prob)
         self.scores = None
-        self.n_heads = args.heads
+        self.n_heads = heads
         self.causal = causal
         self.register_buffer("mask", None, persistent=False)
 
@@ -85,29 +85,29 @@ class MultiHeadedSelfAttention(nn.Module):
 
 
 class PositionWiseFeedForward(nn.Module):
-    def __init__(self,args):
+    def __init__(self, hidden_size):
         super(PositionWiseFeedForward,self).__init__()
-        self.fc1 = nn.Linear(args.hidden_size, args.hidden_size*4)
-        self.fc2 = nn.Linear(args.hidden_size*4, args.hidden_size)
+        self.fc1 = nn.Linear(hidden_size, hidden_size*4)
+        self.fc2 = nn.Linear(hidden_size*4, hidden_size)
     def forward(self, x):
         return self.fc2(gelu(self.fc1(x)))
 
 
 class TransformerBlockBERT(nn.Module):
-    def __init__(self, args, share='all', norm='pre', causal=False):
+    def __init__(self, hidden_size, hidden_dropout_prob=0.3, share='all', norm='pre', causal=False):
         super(TransformerBlockBERT, self).__init__()
         
         #self.attn        = Attention(d_model=d_model, n_head=n_head, d_head=(d_model//n_head), n_ctx=1024, bias=True, scale=False)
-        self.attention = MultiHeadedSelfAttention(args, causal=causal)
+        self.attention = MultiHeadedSelfAttention(hidden_size, causal=causal)
 
-        self.feedforward = PositionWiseFeedForward(args)
-        self.norm1        = LayerNorm(args.hidden_size, eps=1e-12)
-        self.norm2        = LayerNorm(args.hidden_size, eps=1e-12)
+        self.feedforward = PositionWiseFeedForward(hidden_size)
+        self.norm1        = LayerNorm(hidden_size, eps=1e-12)
+        self.norm2        = LayerNorm(hidden_size, eps=1e-12)
         self.share = share
         self.norm_pos = norm
-        self.drop1 = nn.Dropout(args.hidden_dropout_prob)
-        self.drop2 = nn.Dropout(args.hidden_dropout_prob)
-        self.proj = nn.Linear(args.hidden_size, args.hidden_size)
+        self.drop1 = nn.Dropout(hidden_dropout_prob)
+        self.drop2 = nn.Dropout(hidden_dropout_prob)
+        self.proj = nn.Linear(hidden_size, hidden_size)
                 
     def forward(self, x, attention_mask=None):
         if self.norm_pos == 'pre':

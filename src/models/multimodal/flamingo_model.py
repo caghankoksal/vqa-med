@@ -3,10 +3,10 @@ import torch.nn.functional as F
 from einops import rearrange
 from torch import einsum, nn
 from ..text.gpt2_layers import TransformerBlockGPT2
-
+from ..text.bert_layers import TransformerBlockBERT
 from .flamingo_pytorch_original import GatedCrossAttentionBlock, PerceiverResampler
 
-# Owner: Lucidrains -> https://github.com/lucidrains/flamingo-pytorch  #I will hack and update necessary parts for my use case
+# Adapted from: Lucidrains -> https://github.com/lucidrains/flamingo-pytorch  #I will hack and update necessary parts for my use case
 # helper functions
 
 
@@ -264,12 +264,15 @@ class FlamingoModel(nn.Module):
                     [
                         # According to parameter, palm or gpt2 transformer blocks are used.
                         Residual(
-                            ParallelTransformerBlock(
-                                dim=dim, dim_head=dim_head, heads=heads, ff_mult=ff_mult
-                            )
-                            if language_model == "palm"
-                            else TransformerBlockGPT2(
+                        #    ParallelTransformerBlock(
+                        #        dim=dim, dim_head=dim_head, heads=heads, ff_mult=ff_mult
+                        #    )
+                        TransformerBlockGPT2(
                                 d_model=dim, n_head=depth, dropout=0.1
+                            )
+                        if language_model == "gpt2"
+                        else TransformerBlockBERT(
+                                hidden_size=dim,
                             )
                         ),
                         GatedCrossAttentionBlock(

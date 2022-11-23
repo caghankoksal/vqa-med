@@ -175,4 +175,4 @@ data/external/*.json
 lightning_logs/*
 wandb/*
 data/external/
-models/
+models/gpt2-pytorch_model.bin
