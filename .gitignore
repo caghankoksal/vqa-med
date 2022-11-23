@@ -175,3 +175,4 @@ data/external/*.json
 lightning_logs/*
 wandb/*
 data/external/
+models/
