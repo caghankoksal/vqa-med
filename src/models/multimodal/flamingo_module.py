@@ -19,54 +19,33 @@ from torch import functional as F
 class FlamingoModule(pl.LightningModule):
     def __init__(
         self,
-        pretrained_clip_path,
-        warmup_steps=569,
-        num_tokens=31092,
-        dim=512,
-        depth=12,
-        num_heads=8,
-        dim_head=64,
-        media_token_id=3190,
-        cross_attn_every=3,
-        perceiver_num_latents=64,
-        perceiver_depth=2,
-        image_encoder="clip",
-        language_model="gpt2",
-        pretrained_gpt2_path=None,
-        classification_mode=True,
-        classification_num_classes = 332,
-        flamingo_mode = True,
-        label_smoothing = 0.1,
-        token_label_smoothing = 0.0,
-        learning_rate = 1e-4,
-        use_image_embeddings = False,
-        train_embedding_layer = True,
-        classifier_dropout = 0.5,
-        use_positional_embedding = True
-
+        args,
     ):
 
         super().__init__()
+        image_encoder=args['model']['image_encoder']
+        language_model= args['model']['language_encoder']
 
         self.save_hyperparameters()
-        self.warmup_steps = warmup_steps
-        device = "cpu"
-        self.classification_mode= classification_mode
-        self.num_classification_classes = classification_num_classes
-        self.flamingo_mode = flamingo_mode
-        self.label_smoothing = label_smoothing
-        self.token_label_smoothing = token_label_smoothing
-        self.learning_rate = learning_rate
-        self.use_image_embeddings = use_image_embeddings
-        self.classifier_dropout = classifier_dropout
-        self.use_positional_embedding = use_positional_embedding
-
-        if image_encoder == "clip" and pretrained_clip_path is not None:
+        self.label_smoothing = args['model']['label_smoothing']
+        self.token_label_smoothing = args['model']['token_label_smoothing']
+        
+        self.classifier_dropout = args['model']['classifier_dropout']
+        #self.img_encoder_outdim = args['model']['img_encoder_out_dim']
+        self.pretrained_clip_path = args['model']['pretrained_clip_path']
+        self.classification_mode = args['model']['classification_mode']
+        self.use_image_embeddings = args['model']['use_image_embeddings']
+        self.num_classification_classes = args['model']['num_classification_classes']
+        self.warmup_steps = args['train']['warmup_steps']
+        self.learning_rate = args['train']['learning_rate']
+        self.flamingo_embed_dim = args['model']['flamingo_embed_dim']
+   
+        if image_encoder == "clip" and self.pretrained_clip_path is not None:
             print("Clip architecture is being loaded")
-            model, _ = clip.load("ViT-B/32", device=device)
+            model, _ = clip.load("ViT-B/32", device='cpu')
             print("Clip pretrained weights are being loaded")
             model.load_state_dict(
-                torch.load(pretrained_clip_path, map_location=device)["state_dict"]
+                torch.load(self.pretrained_clip_path, map_location='cpu')["state_dict"]
             )
             image_encoder = VisionTransformer(
                 input_resolution=224,
@@ -77,9 +56,10 @@ class FlamingoModule(pl.LightningModule):
                 output_dim=512,
             )
             image_encoder.load_state_dict(model.visual.state_dict())
+
             self.img_encoder_outdim = 512
 
-        elif image_encoder == "clip" and pretrained_clip_path is None:
+        elif image_encoder == "clip" and self.pretrained_clip_path  is None:
             print("Vit is started from scratch")
             image_encoder = VisionTransformer(
                 input_resolution=224,
@@ -89,13 +69,17 @@ class FlamingoModule(pl.LightningModule):
                 heads=8,
                 output_dim=512,
             )
-            self.img_encoder_outdim = 512
             print("Vit is initialized")
 
-            #self.img_encoder_outdim = dim
+            self.img_encoder_outdim = 512
+
+
         elif image_encoder == "densenet":
             image_encoder = xrv.models.DenseNet(weights="densenet121-res224-mimic_nb")
             self.img_encoder_outdim = None
+
+        elif image_encoder == "efficientNet":
+            pass
 
         # It should be better if single Flamingo model is created and used with both GPT2 and Palm
 
@@ -103,50 +87,54 @@ class FlamingoModule(pl.LightningModule):
             "Flamingo is being initialized with ", language_model, " as language model"
         )
         self.flamingo_palm = FlamingoModel(
-            num_tokens=num_tokens,  # number of tokens
-            dim=dim,  # dimensions
-            depth=depth,  # depth
-            heads=num_heads,  # attention heads
-            dim_head=dim_head,  # dimension per attention head
-            img_encoder=image_encoder,  # plugin your image encoder (this can be optional if you pass in the image embeddings separately, but probably want to train end to end given the perceiver resampler)
-            media_token_id=media_token_id,  # the token id representing the [media] or [image]
-            cross_attn_every=cross_attn_every,  # how often to cross attend
-            perceiver_num_latents=perceiver_num_latents,  # perceiver number of latents, should be smaller than the sequence length of the image tokens
-            perceiver_depth=perceiver_depth,  # perceiver resampler depth
-            language_model=language_model,  # language model    (gpt2 or palm)
+            num_tokens=args['model']['num_tokens'],  # number of tokens
+            dim=args['model']['flamingo_embed_dim'],  # dimensions
+            depth=args['model']['depth'],  # depth
+            heads=args['model']['num_heads'],  # attention heads
+            dim_head=args['model']['att_head_dim'],  # dimension per attention head
+            img_encoder= image_encoder,  # plugin your image encoder (this can be optional if you pass in the image embeddings separately, but probably want to train end to end given the perceiver resampler)
+            media_token_id=args['model']['media_token_id'],  # the token id representing the [media] or [image]
+            cross_attn_every=args['model']['cross_att_every'],  # how often to cross attend
+            perceiver_num_latents=args['model']['perceiver_num_latents'],  # perceiver number of latents, should be smaller than the sequence length of the image tokens
+            perceiver_depth=args['model']['perceicer_depth'],  # perceiver resampler depth
+            language_model=args['model']['language_encoder'],  # language model    (gpt2 or palm)
             img_encoder_outdim=self.img_encoder_outdim,
-            pretrained_gpt2_path=pretrained_gpt2_path,
+            pretrained_gpt2_path=args['model']['pretrained_language_path'],
             classification_mode = self.classification_mode,
-            flamingo_mode = self.flamingo_mode,
-            train_embedding_layer=train_embedding_layer,
-            use_positional_embedding = self.use_positional_embedding
+            flamingo_mode=args['model']['flamingo_mode'],
+            train_embedding_layer=args['model']['train_embedding_layer'],
+            use_positional_embedding = args['model']['use_positional_embedding'],
         )
+        print('Flamingo is initalized')
 
         if self.classification_mode:
             #self.classifier = nn.Linear(dim,self.num_classification_classes )
             #nn.init.normal_(self.classifier.weight, std=0.02)
             if self.use_image_embeddings:
                 self.classifier = nn.Sequential(
-                    LayerNorm(2*dim),
+                    LayerNorm(2*self.flamingo_embed_dim),
                     #nn.Linear(dim, 4096),
                     #nn.ReLU(),
                     nn.Dropout(0.1),
                     #nn.Linear(4096, self.num_classification_classes),
-                    nn.Linear(2*dim, self.num_classification_classes),
+                    nn.Linear(2*self.flamingo_embed_dim, self.num_classification_classes),
                 )
             else:
                 self.classifier = nn.Sequential(
-                    LayerNorm(dim),
+                    LayerNorm(self.flamingo_embed_dim),
                     #nn.Linear(dim, 4096),
                     #nn.ReLU(),
                     nn.Dropout(self.classifier_dropout),
                     #nn.Linear(4096, self.num_classification_classes),
-                    nn.Linear(dim, self.num_classification_classes),
+                    nn.Linear(self.flamingo_embed_dim, self.num_classification_classes),
                 )
+
+            print('Self classifier ',self.classifier)
 
     def forward(self, x, return_attn=False, return_embeds=False):
         # in lightning, forward defines the prediction/inference actions
         images = x["image"]
+        print('Images FM shape', images.shape)
         input_tokens = x["input_ids"]
         
         batch_size = images.shape[0]
@@ -177,6 +165,7 @@ class FlamingoModule(pl.LightningModule):
         else:
             if self.classification_mode and self.use_image_embeddings:
                 index_eoq = x["index_eoq"]
+                print('HEREEE1 ')
                 flamingo_logits, token_embeds, image_embeddings = self.flamingo_palm(
                     input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn, 
                     return_image_embeddings = self.use_image_embeddings
@@ -188,12 +177,12 @@ class FlamingoModule(pl.LightningModule):
 
                 return flamingo_logits, classification_logits
 
-            elif self.classification_mode:
+            elif self.classification_mode and not self.use_image_embeddings :
                 index_eoq = x["index_eoq"]
                 flamingo_logits, token_embeds = self.flamingo_palm(
                     input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn
                 )
-
+                print('HEREEE2 ')
                 classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
                 classification_logits = torch.softmax(classification_logits, dim=1)
 
@@ -255,8 +244,9 @@ class FlamingoModule(pl.LightningModule):
         )
         # Classification Loss
         if self.classification_mode:
+            #print('class_labels : ',class_labels)
+            #print('Class logits shape',classification_logits.shape)
             train_classification_loss = nn.CrossEntropyLoss(label_smoothing=self.label_smoothing)(classification_logits, class_labels)
-
             self.log(
                 "train_classification_loss",
                 train_classification_loss,
@@ -308,7 +298,6 @@ class FlamingoModule(pl.LightningModule):
         input_tokens = batch["input_ids"]
         targets = batch["targets"]
         batch_size = images.shape[0]
-
         if self.classification_mode and self.use_image_embeddings:
             class_labels = batch["label"]
             index_eoq = batch["index_eoq"]
@@ -318,6 +307,8 @@ class FlamingoModule(pl.LightningModule):
                 )
 
             eoq_embeds = token_embeds[torch.arange(batch_size), index_eoq]
+            #print('EOQ embeds shape', eoq_embeds.shape)
+            #print('image_embeddings.squeeze(1), shape ',image_embeddings.squeeze(1).shape)
 
             classification_logits = self.classifier(torch.cat([image_embeddings.squeeze(1), eoq_embeds],dim=1))
 
@@ -332,7 +323,6 @@ class FlamingoModule(pl.LightningModule):
             flamingo_logits = self.flamingo_palm(
             input_tokens.squeeze(1), images.unsqueeze(1)
         )
-
 
 
         val_loss = nn.CrossEntropyLoss(reduction="none",label_smoothing=self.token_label_smoothing)(
@@ -354,7 +344,7 @@ class FlamingoModule(pl.LightningModule):
         if self.classification_mode:
                     # Classification Loss
             val_classification_loss = nn.CrossEntropyLoss(label_smoothing=self.label_smoothing)(classification_logits, class_labels)
-
+            val_classification_loss=0
             self.log(
                 "val_classification_loss",
                 val_classification_loss,

@@ -26,6 +26,7 @@ class PerceiverAttention(nn.Module):
         heads = 8
     ):
         super().__init__()
+        print("Perceiver attention is created with ", 'dim : ',dim, 'dim_head: ',dim_head)
         self.scale = dim_head ** -0.5
         self.heads = heads
         inner_dim = dim_head * heads

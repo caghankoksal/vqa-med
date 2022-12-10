@@ -14,148 +14,89 @@ from pytorch_lightning.loggers import CometLogger
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning import loggers as pl_loggers
 
-seed_everything(42, workers=True)
+from src.utils.utils import load_config
 
-img_mean = (0.48,0.48,0.48)
-img_std = (0.265,0.265,0.265)
+if __name__ == '__main__':
+    seed_everything(42, workers=True)
 
-transforms = {'train':
-    T.Compose(
-    [
-        T.RandomRotation(10),
-        T.ToTensor(),
-        # T.Normalize(mean=img_mean, std=img_std)
-    ]),
-    'val':
-    T.Compose(
-    [
-        T.RandomRotation(10),
-        T.ToTensor(),
-        # T.Normalize(mean=img_mean, std=img_std)
-    ]),
-    'test':
-    T.Compose(
-    [
-        T.ToTensor(),
-        # T.Normalize(mean=img_mean, std=img_std)
-    ])
-}
+    img_mean = (0.48,0.48,0.48)
+    img_std = (0.265,0.265,0.265)
+
+    augmentations = {'train':
+        T.Compose(
+        [   
+            T.Resize((224,224)),
+            T.RandomRotation(10),
+            T.ToTensor(),
+            T.Normalize(mean=img_mean, std=img_std)
+        ]),
+        'val':
+        T.Compose(
+        [
+            T.Resize((224,224)),
+            T.RandomRotation(10),
+            T.ToTensor(),
+            T.Normalize(mean=img_mean, std=img_std)
+        ]),
+        'test':
+        T.Compose(
+        [
+            T.Resize((224,224)),
+            T.ToTensor(),
+            T.Normalize(mean=img_mean, std=img_std)
+        ])
+    }
 
 
-# Hyperparameters
-NUM_DATA_WORKERS  = 8
-ONLY_IMAGES = False
-BATCH_SIZE = 64
-NUM_EPOCHS = 80
-LIMIT_NUM_SAMPLES = None
+    args = load_config('/u/home/koksal/mlmi-vqa/configs','config.yaml')
 
-ACCELERATOR = "gpu"
-DEVICES = [6]
-# ACCELERATOR = "cpu"
-# DEVICES = 1
-DATASET_ROOT = '/home/mlmi-matthias/VQA-RAD'
-PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
-PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
+    mimic_datamodule = VQRadDataModule(args, augmentations= augmentations)
+
+    train_loader = mimic_datamodule.train_dataloader()
+    val_loader = mimic_datamodule.val_dataloader()
 
 
 
-IMAGE_TYPE = "jpg"
-SHUFFLE = True
-TOKENIZER  = "gpt2"
-LOAD_IN_MEM = True
-PREPROCESSED = False
+    model = FlamingoModule(args) 
 
-mimic_datamodule = VQRadDataModule(
-                                batch_size=BATCH_SIZE, transforms=transforms, root=DATASET_ROOT,
-                                limit_num_samples=LIMIT_NUM_SAMPLES, num_workers=NUM_DATA_WORKERS, shuffle=SHUFFLE,
-                                tokenizer="gpt2", preprocessed=PREPROCESSED, load_in_memory=LOAD_IN_MEM
-)
+    if args['pretrained']:
+        print("Pretrained Flamingo Model is loaded from checkpoint : ",args['pretrained'])
+        model.load_state_dict(torch.load(args['pretrained'])["state_dict"])
 
 
-train_loader = mimic_datamodule.train_dataloader()
-val_loader = mimic_datamodule.val_dataloader()
+    from pytorch_lightning.callbacks import ModelCheckpoint
+    from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
-print("Len training dataset : ", len(mimic_datamodule.train_dataset),
-    "Batch Size : ", BATCH_SIZE, "NUM_EPOCHS : ",NUM_EPOCHS )
-print("Total training steps : ", len(mimic_datamodule.train_dataset)//BATCH_SIZE*NUM_EPOCHS)
+    
+    lr_monitor = LearningRateMonitor(logging_interval='step')
 
+    CLASSIFICATION_MODE = True
+    if CLASSIFICATION_MODE:
+        checkpoint_callback = ModelCheckpoint(
+                    filename='{epoch}-{val_acc_epoch:.2f}-{val_total_loss_epoch:.2f}-{val_loss_generation_epoch:.2f}-{val_classification_loss_epoch:.2f}',
+                    monitor= 'val_acc_epoch',
+                    save_top_k = 3,
+                    save_last=True,
+                    mode="max")
 
-# MODEL HPRAMS
-VOCAB_SIZE_OF_TOKENIZER = 50258 # mimic_datamodule.train_dataset.tokenizer.vocab_size
-LANGUAGE_MODEL = 'gpt2'
-NUM_TOKENS = VOCAB_SIZE_OF_TOKENIZER +3 if LANGUAGE_MODEL=="gpt2" else 31092
-FLAMINGO_EMBED_DIM = 768
-DEPTH = 12
-NUM_HEADS = 8
-ATT_HEAD_DIM = 64
-CROOS_ATT_EVERY=3
-MEDIA_TOKEN_ID = mimic_datamodule.train_dataset.tokenizer.\
-    all_special_ids[mimic_datamodule.train_dataset.tokenizer.all_special_tokens.index('<image>')]
-PERCEIVER_NUM_LATENTS = 64
-PERCEIVER_DEPTH = 2
-IMAGE_ENCODER = "clip"
+        #early_stopping_callback = EarlyStopping(monitor="val_acc_epoch", mode="max",patience=10)
+        early_stopping_callback = EarlyStopping(monitor="val_total_loss_epoch", mode="min",patience=5)
+    else:
+        checkpoint_callback = ModelCheckpoint(
+                filename='{epoch}-{val_loss_generation_epoch:.2f}',
+                monitor= 'val_loss_generation_epoch',
+                save_top_k = 3, 
+                save_last=True,
+                mode="min")
+        early_stopping_callback = EarlyStopping(monitor="val_loss_generation_epoch", mode="min",patience=10)
 
+    #early_stopping_callback = EarlyStopping(monitor="val_acc_epoch", mode="max",patience=10)
 
+    # All our models are trained using the AdamW optimizer with global norm clipping of 1
+    print(args['train']['devices'])
+    trainer = pl.Trainer(max_epochs=args['train']['num_epochs'],
+                        accelerator=args['train']['accelerator'], devices=args['train']['devices'],
+                        callbacks=[lr_monitor, checkpoint_callback,early_stopping_callback],
+                        gradient_clip_val=1)
 
-print("LANGUAGE_MODEL : ",LANGUAGE_MODEL, "\n"
-        "NUM_TOKENS : ",NUM_TOKENS, "\n"
-        "FLAMINGO_EMBED_DIM : ",FLAMINGO_EMBED_DIM, "\n"
-        "DEPTH : ",DEPTH, "\n"
-        "NUM_HEADS : ",NUM_HEADS, "\n"
-        "ATT_HEAD_DIM : ",ATT_HEAD_DIM, "\n"
-        "CROOS_ATT_EVERY : ",CROOS_ATT_EVERY, "\n"
-        "MEDIA_TOKEN_ID : ",MEDIA_TOKEN_ID, "\n"
-        "PERCEIVER_NUM_LATENTS : ",PERCEIVER_NUM_LATENTS, "\n"
-        "PERCEIVER_DEPTH : ",PERCEIVER_DEPTH, "\n"
-        "IMAGE_ENCODER : ",IMAGE_ENCODER, "\n"
-        "PRETRAINED_CLIP_PATH : ",PRETRAINED_CLIP_PATH, "\n"
-        "PRETRAINED_GPT2_PATH : ",PRETRAINED_GPT2_PATH, "\n")
-
-
-hyperparams = {
-    'pretrained_clip_path': PRETRAINED_CLIP_PATH,
-    'warmup_steps': 0,
-    'num_tokens': NUM_TOKENS,
-    'dim': FLAMINGO_EMBED_DIM,
-    'depth': DEPTH,
-    'num_heads': NUM_HEADS,
-    'dim_head': ATT_HEAD_DIM,
-    'cross_attn_every': CROOS_ATT_EVERY,
-    'media_token_id': MEDIA_TOKEN_ID,
-    'perceiver_num_latents': PERCEIVER_NUM_LATENTS,
-    'perceiver_depth': PERCEIVER_DEPTH,
-    'image_encoder': IMAGE_ENCODER,
-    'language_model': LANGUAGE_MODEL,
-    'pretrained_gpt2_path': PRETRAINED_GPT2_PATH,
-}
-
-
-model = FlamingoModule(**hyperparams)
-
-CHECKPOINT_PATH = "/home/mlmi-matthias/Caghan/mlmi-vqa/notebooks/lightning_logs/version_20/checkpoints/epoch=114-val_loss=0.84-other_metric=0.00.ckpt"
-START_FROM_CHECKPOINT = True
-
-if START_FROM_CHECKPOINT:
-    print("Pretrained Flamingo Model is loaded from checkpoint : ",CHECKPOINT_PATH)
-    model.load_state_dict(torch.load(CHECKPOINT_PATH)["state_dict"])
-
-
-lr_monitor = LearningRateMonitor(logging_interval='step')
-from pytorch_lightning.callbacks import ModelCheckpoint
-checkpoint_callback = ModelCheckpoint(
-            filename='{epoch}-{val_loss:.2f}-{other_metric:.2f}',
-                monitor= 'val_loss',
-                    save_top_k = 10)
-
-from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-early_stopping_callback = EarlyStopping(monitor="val_loss", mode="min",patience=5)
-
-
-# from pytorch_lightning.strategies import DDPStrategy
-trainer = pl.Trainer(max_epochs=NUM_EPOCHS,
-                    accelerator=ACCELERATOR, devices=DEVICES,
-                    callbacks=[lr_monitor, checkpoint_callback, early_stopping_callback],
-                    # strategy=DDPStrategy(find_unused_parameters=False)
-                    )
-
-trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)

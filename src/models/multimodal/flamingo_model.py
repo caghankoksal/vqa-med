@@ -262,6 +262,7 @@ class FlamingoModel(nn.Module):
         self.use_positional_embedding = use_positional_embedding
         freeze_model_and_make_eval_(self.img_encoder)
 
+        print('Perceiver Resampler is being initialized')
         self.perceiver_resampler = PerceiverResampler(
             dim=dim,
             depth=perceiver_depth,
@@ -269,12 +270,13 @@ class FlamingoModel(nn.Module):
             heads=heads,
             num_latents=perceiver_num_latents,
         )
+        print('Perceiver Resampler is initialized')
 
         self.img_encoder_outdim_layer = None
         if self.img_encoder_outdim != self.dim:
             self.img_encoder_outdim = img_encoder_outdim
             self.img_encoder_outdim_layer = nn.Linear(img_encoder_outdim, self.dim)
-
+        print('img encoder outdim initialized')
         self.layers = nn.ModuleList([])
         for ind in range(depth):
             self.layers.append(
@@ -304,7 +306,7 @@ class FlamingoModel(nn.Module):
                     ]
                 )
             )
-
+        print('Layers are initializzed')
         self.to_logits = nn.Sequential(
             LayerNorm(dim), nn.Linear(dim, num_tokens, bias=False)
         )
@@ -400,8 +402,8 @@ class FlamingoModel(nn.Module):
         elif self.language_model=='bert':
             text_tokens = self.bert_embedding(input_ids=text, token_type_ids=token_type_ids, position_ids=None)
 
-
-        assert not (exists(images) and exists(image_embeds))
+        #print('Image embeds', image_embeds.shape)
+        #assert not (exists(images) and exists(image_embeds))
 
         # encode images into embeddings
         # with the img_encoder passed in at init

@@ -170,3 +170,15 @@ def beam_decode(batch,cur_model, tokenizer, top_k = 3, beam_width = 3, max_len=5
         decoded_batch.append(utterances)
 
     return decoded_batch
+
+
+import yaml
+
+# Function to load yaml configuration file
+def load_config(CONFIG_PATH, config_name):
+    with open(os.path.join(CONFIG_PATH, config_name)) as file:
+        config = yaml.safe_load(file)
+
+    return config
+
+
