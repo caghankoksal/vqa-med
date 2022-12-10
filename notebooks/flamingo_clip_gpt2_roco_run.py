@@ -1,5 +1,7 @@
 # Import comet_ml at the top of your file
 import comet_ml
+import os
+#os.environ['CUDA_VISIBLE_DEVICES'] =6
 import sys 
 sys.path.append('..')
 
@@ -16,10 +18,15 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.strategies import DDPStrategy
 
+from src.utils.utils import load_config
 if __name__ == '__main__':
     # sets seeds for numpy, torch, python.random and PYTHONHASHSEED.
     seed_everything(42, workers=True)
 
+
+
+
+    config = load_config('configs', 'config.yaml')
 
     
     #MIMIC CXR  Mean and Std of the dataset
@@ -30,17 +37,17 @@ if __name__ == '__main__':
     augmentations = {'train':
         T.Compose(
         [
-            T.Resize((224, 224)),
-            T.RandomRotation(10),
+            T.Resize((config['train']['data_augmentation']['resize_size'])),
+            T.RandomRotation(config['train']['data_augmentation']['random_rotation']),
             T.ToTensor(),
-            T.Normalize(mean=(0.3570, 0.3621, 0.3636), std=(0.2924, 0.2941, 0.2951))
+            #T.Normalize(mean=(0.3570, 0.3621, 0.3636), std=(0.2924, 0.2941, 0.2951))
         ]),
         'validation':
         T.Compose(
         [   T.Resize((224, 224)),
             T.RandomRotation(10),
             T.ToTensor(),
-            T.Normalize(mean=(0.3570, 0.3621, 0.3636), std=(0.2924, 0.2941, 0.2951))
+            #T.Normalize(mean=(0.3570, 0.3621, 0.3636), std=(0.2924, 0.2941, 0.2951))
         ]),
         'test':
         T.Compose(
@@ -48,31 +55,19 @@ if __name__ == '__main__':
             T.Resize((224, 224)),
             T.RandomRotation(10),
             T.ToTensor(),
-            T.Normalize(mean=(0.3570, 0.3621, 0.3636), std=(0.2924, 0.2941, 0.2951))
+            #T.Normalize(mean=(0.3570, 0.3621, 0.3636), std=(0.2924, 0.2941, 0.2951))
         ])
     }
 
 
     # Hyperparameters
-    NUM_DATA_WORKERS  = 4
-    ONLY_IMAGES = False
-    BATCH_SIZE = 96
-    NUM_EPOCHS = 200
-    LIMIT_NUM_SAMPLES = None
+    NUM_DATA_WORKERS  = config['dataset']['num_workers']
+    ONLY_IMAGES = config['dataset']['only_images']
+    BATCH_SIZE = config['train']['batch_size']
+    NUM_EPOCHS = config['train']['epochs']
+    LIMIT_NUM_SAMPLES = config['dataset']['limit_num_samples']
 
-    if os.getcwd().startswith('/home/mlmi-matthias'):
-        ACCELERATOR = "gpu"
-        DEVICES = [3,5,7]
-        PRETRAINED_CLIP_PATH = '/home/mlmi-matthias/Caghan/pretrained_models/PubMedCLIP_ViT32.pth'
-        PRETRAINED_GPT2_PATH = "/home/mlmi-matthias/Caghan/pretrained_models/gpt2-pytorch_model.bin"
-        ROOT = '/home/mlmi-matthias/roco-dataset/data'
 
-    elif os.getcwd().startswith('/Users/caghankoksal'):
-        PRETRAINED_CLIP_PATH = '/Users/caghankoksal/Desktop/development/PubMedCLIP_ViT32.pth'
-        PRETRAINED_GPT2_PATH = "/Users/caghankoksal/Desktop/development/TransformerPlay/gpt2-pytorch_model.bin"
-        ACCELERATOR = "cpu"
-        DEVICES = 1
-        ROOT = '/Users/caghankoksal/Desktop/development/roco-dataset/data'
 
 
     IMAGE_TYPE = "jpg"
