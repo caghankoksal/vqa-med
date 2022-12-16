@@ -23,7 +23,7 @@ class FlamingoModule(pl.LightningModule):
     ):
 
         super().__init__()
-        image_encoder=args['model']['image_encoder']
+        image_encoder_type=args['model']['image_encoder']
         language_model= args['model']['language_encoder']
 
         self.save_hyperparameters()
@@ -40,7 +40,7 @@ class FlamingoModule(pl.LightningModule):
         self.learning_rate = args['train']['learning_rate']
         self.flamingo_embed_dim = args['model']['flamingo_embed_dim']
    
-        if image_encoder == "clip" and self.pretrained_clip_path is not None:
+        if image_encoder_type == "clip" and self.pretrained_clip_path is not None:
             print("Clip architecture is being loaded")
             model, _ = clip.load("ViT-B/32", device='cpu')
             print("Clip pretrained weights are being loaded")
@@ -59,7 +59,7 @@ class FlamingoModule(pl.LightningModule):
 
             self.img_encoder_outdim = 512
 
-        elif image_encoder == "clip" and self.pretrained_clip_path  is None:
+        elif image_encoder_type == "clip" and self.pretrained_clip_path  is None:
             print("Vit is started from scratch")
             image_encoder = VisionTransformer(
                 input_resolution=224,
@@ -74,12 +74,16 @@ class FlamingoModule(pl.LightningModule):
             self.img_encoder_outdim = 512
 
 
-        elif image_encoder == "densenet":
+        elif image_encoder_type == "densenet":
             image_encoder = xrv.models.DenseNet(weights="densenet121-res224-mimic_nb")
             self.img_encoder_outdim = None
 
-        elif image_encoder == "efficientNet":
-            pass
+        elif image_encoder_type == "efficientnet":
+            from efficientnet_pytorch import EfficientNet
+            image_encoder = EfficientNet.from_name('efficientnet-b0')
+            image_encoder._fc = nn.Identity()
+            self.img_encoder_outdim = 1280
+        
 
         # It should be better if single Flamingo model is created and used with both GPT2 and Palm
 
@@ -134,7 +138,7 @@ class FlamingoModule(pl.LightningModule):
     def forward(self, x, return_attn=False, return_embeds=False):
         # in lightning, forward defines the prediction/inference actions
         images = x["image"]
-        print('Images FM shape', images.shape)
+        #print('Images FM shape', images.shape)
         input_tokens = x["input_ids"]
         
         batch_size = images.shape[0]
@@ -165,7 +169,6 @@ class FlamingoModule(pl.LightningModule):
         else:
             if self.classification_mode and self.use_image_embeddings:
                 index_eoq = x["index_eoq"]
-                print('HEREEE1 ')
                 flamingo_logits, token_embeds, image_embeddings = self.flamingo_palm(
                     input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn, 
                     return_image_embeddings = self.use_image_embeddings
@@ -182,7 +185,6 @@ class FlamingoModule(pl.LightningModule):
                 flamingo_logits, token_embeds = self.flamingo_palm(
                     input_tokens.squeeze(1), images.unsqueeze(1), return_attn=return_attn
                 )
-                print('HEREEE2 ')
                 classification_logits = self.classifier(token_embeds[torch.arange(batch_size), index_eoq])
                 classification_logits = torch.softmax(classification_logits, dim=1)
 
@@ -344,7 +346,6 @@ class FlamingoModule(pl.LightningModule):
         if self.classification_mode:
                     # Classification Loss
             val_classification_loss = nn.CrossEntropyLoss(label_smoothing=self.label_smoothing)(classification_logits, class_labels)
-            val_classification_loss=0
             self.log(
                 "val_classification_loss",
                 val_classification_loss,

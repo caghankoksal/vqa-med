@@ -19,7 +19,7 @@ dataset:
 
 model:
   script_path: ../models/optimized.py
-  pretrained_clip_path: null #/u/home/koksal/mlmi-vqa/models/PubMedCLIP_ViT32.pth
+  pretrained_clip_path: /u/home/koksal/mlmi-vqa/models/PubMedCLIP_ViT32.pth
   pretrained_language_path: /u/home/koksal/mlmi-vqa/models/gpt2-pytorch_model.bin
   pretrained_model_path: 
   image_encoder: clip 
@@ -32,11 +32,11 @@ model:
   num_heads: 8
   att_head_dim: 64
   cross_att_every: 3
-  media_token_id: 3
+  media_token_id: 50258
   perceiver_num_latents: 64
   perceicer_depth: 2
   classification_mode: True
-  flamingo_mode: True
+  flamingo_mode: False
   train_embedding_layer: True
   use_positional_embedding: True
   use_image_embeddings: True
@@ -61,7 +61,7 @@ train:
   batch_size: 64
   num_epochs: 80
   warm_up_steps: 0
-  learning_rate: 0.0001
+  learning_rate: 0.001
   devices: 
     - 6
   accelerator: gpu
