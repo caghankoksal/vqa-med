@@ -22,9 +22,9 @@ from sklearn import model_selection
 ## NOTE: The VQA RAD dataset has 107 unique chest xray images and ~700 QAs
 
 class VQARadDataset(Dataset):
-    def __init__(self, root, mode='train', samples=None, transform=None,
-                tokenizer='scibert', question_tokenize=None, answer_tokenize=None, tokenizer_add_special_tokens=True, 
-                token_max_length=256, return_pil=False, preprocessed=True, load_in_memory=False, return_idx_answer_eoc = True):
+    def __init__(self, root, answers2label_path, label2answer_path, mode='train', samples=None, transform=None,
+                tokenizer='scibert', tokenizer_add_special_tokens=True, 
+                token_max_length=256, load_in_memory=False, return_idx_answer_eoc = True):
         self.root = root
         self.transform = transform
         self.samples = samples
@@ -35,18 +35,22 @@ class VQARadDataset(Dataset):
         self.token_max_len = token_max_length
         self.return_idx_answer_eoc = return_idx_answer_eoc
 
-        # Create answers dictionary
-        answer_list = []
-        for sample in samples:
-            answer_list.append(str(sample['answer']).strip().lower())
+        # # Create answers dictionary
+        # answer_list = []
+        # for sample in samples:
+        #     answer_list.append(str(sample['answer']).strip().lower())
       
-        # Create a dictionary of answers
-        self.answer_to_label = {}
-        self.label_to_answer = {}
-        for i,ans in enumerate(set(answer_list)):
-            self.answer_to_label[ans] = i
-            self.label_to_answer[i] = ans
+        # # Create a dictionary of answers
+        # self.answer_to_label = {}
+        # self.label_to_answer = {}
+        # for i,ans in enumerate(set(answer_list)):
+        #     self.answer_to_label[ans] = i
+        #     self.label_to_answer[i] = ans
         
+        #/u/home/koksal/mlmi-vqa/data/answer2label_vqarad.json
+        self.answer_to_label =  json.load(open(answers2label_path))
+        self.label_to_answer = json.load(open(label2answer_path))
+
         print('Num unique answers vqa-rad ', len(set(self.answer_to_label.keys())))
 
 
@@ -105,12 +109,15 @@ class VQARadDataset(Dataset):
         
         # Put image at the beginning of the question
         if self.mode == "test":
-            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + '<EOQ>' + question + ' Answer: '
+            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: '  + question + '<EOQ>' + ' Answer: '  + ' <EOC>'
         else:
-            label = self.answer_to_label[str(answer).strip().lower()]
+            label = self.answer_to_label.get(str(answer).strip().lower())
             cur_sample['label'] = label
-            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + '<EOQ>' + question + ' Answer: ' + str(answer) + ' <EOC>'
-            
+            #text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + '<EOQ>' + question + ' Answer: ' + str(answer) + ' <EOC>'
+              # Put image at the beginning of the explanation
+            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'question: ' + cur_sample["question"] +\
+                                ' <EOQ>' +' answer: '+cur_sample["answer"] + ' <EOC>'
+        #print('text : ',text)
         input_encoding = self.tokenizer.encode_plus(text, padding='max_length', truncation=True, max_length=self.token_max_len, return_tensors="pt")
 
         if self.tokenizer_type == 'gpt2':
@@ -167,46 +174,60 @@ class VQRadDataModule(pl.LightningDataModule):
         self.augmentations = augmentations
         self.batch_size = args["train"]['batch_size']
         self.root = args['dataset']['vqa_rad_path']
+        self.answers2label_path = args['dataset']['answers2label_path']
+        self.label2answer_path = args['dataset']['label2answer_path']
         self.limit_num_samples = args['dataset']['limit_num_samples']
         self.num_workers = args['dataset']['num_workers']
         self.shuffle = args['dataset']['shuffle']
         self.tokenizer = args['dataset']['tokenizer']
         self.load_in_memory = args['dataset']['load_in_memory']
-        print('Load memıory', self.load_in_memory)
+        print('Load memory', self.load_in_memory)
 
 
         with open(os.path.join(self.root,'VQA-RAD_public.json'), 'r') as f:
             self.sample_dicts = json.load(f)
 
-    
+        self.train_split= []
+        self.val_split = []
+        for sample in self.sample_dicts:
+            if sample['phrase_type'].startswith('test'):
+                self.val_split.append(sample)
+            else:
+                self.train_split.append(sample)
 
+        # Official VQA RAD split does not have val split so currently just create workaround
+        #self.test_split = self.val_split.copy()
 
         print(f'There are {len(self.sample_dicts)} QA pairs in VQA-RAD dataset')
+        print(f'Training set has {len(self.train_split)} Test set has {len(self.val_split)} questions')
 
         # only use 90% for train-val, 10% is always test
         # from which train is 80% and val is 20%
-        train_test_split = int(0.9 * len(self.sample_dicts))
-        self.train_split, self.val_split = model_selection.train_test_split(self.sample_dicts[:train_test_split], test_size=0.2, shuffle=self.shuffle)
-        self.test_split = self.sample_dicts[train_test_split:]
+        #train_test_split = int(0.9 * len(self.sample_dicts))
+        #self.train_split, self.val_split = model_selection.train_test_split(self.sample_dicts[:train_test_split], test_size=0.2, shuffle=self.shuffle)
+        #self.test_split = self.sample_dicts[train_test_split:]
 
         # Limit all predefined paths to the number of limited samples
         if self.limit_num_samples is not None:
             self.train_split = self.train_split[:self.limit_num_samples]
             self.val_split = self.val_split[:self.limit_num_samples]
-            self.test_split = self.test_split[:self.limit_num_samples]
+            self.test_split = self.val_split[:self.limit_num_samples]
 
-        self.train_dataset = VQARadDataset(self.root, 'train', self.train_split, transform=self.augmentations["train"],
-                                    tokenizer=self.tokenizer, load_in_memory = self.load_in_memory)
+        self.train_dataset = VQARadDataset(self.root,  self.answers2label_path, self.label2answer_path, 
+                                          mode='train', samples=self.train_split, transform=self.augmentations["train"],
+                                          tokenizer=self.tokenizer, load_in_memory = self.load_in_memory)
 
-        self.validation_dataset = VQARadDataset(self.root, 'val', self.val_split, transform=self.augmentations["val"],
-                                    tokenizer=self.tokenizer,  load_in_memory = self.load_in_memory)
+        self.validation_dataset = VQARadDataset(self.root, self.answers2label_path, self.label2answer_path, 
+                                                mode='val', samples=self.val_split, transform=self.augmentations["val"],
+                                                tokenizer=self.tokenizer, load_in_memory = self.load_in_memory)
 
-        self.test_dataset = VQARadDataset(self.root, 'test', self.test_split, transform=self.augmentations["val"], 
-                                    tokenizer=self.tokenizer, load_in_memory = self.load_in_memory)
+        self.test_dataset = VQARadDataset(self.root, self.answers2label_path, self.label2answer_path,
+                                         mode='test', samples=self.val_split, transform=self.augmentations["val"], 
+                                         tokenizer=self.tokenizer, load_in_memory = self.load_in_memory)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size,
-                          num_workers=self.num_workers, pin_memory=True)
+                          num_workers=self.num_workers, pin_memory=True, shuffle=True)
 
     def val_dataloader(self):
         return DataLoader(self.validation_dataset, batch_size=self.batch_size,
