@@ -4,31 +4,33 @@ pretrained: null
 dataset:
   imageclef_path: /u/home/koksal/mlmi-vqa/data/external/imageclef/
   vqa_rad_path: /u/home/koksal/mlmi-vqa/data/external/VQA_RAD
-  answers_list_path:
+  answers2label_path: /u/home/koksal/mlmi-vqa/data/answer2label_vqarad_concat.json
+  label2answer_path: /u/home/koksal/mlmi-vqa/data/label2answer_vqarad_concat.json
   mimic_cxr_jpg_path:
   
   split_path: /home/mlmi-matthias/Caghan/mlmi-vqa/data/external/
-  num_workers: 8
+  num_workers: 4
   only_images: False
   limit_num_samples: null
   shuffle: True
   load_in_memory: False
   preprocessed: False
-  tokenizer: gpt2
-
+  tokenizer: bert
+  mean: [0.485, 0.456, 0.406]
+  std:  [0.229, 0.224, 0.225]
 
 model:
   script_path: ../models/optimized.py
   pretrained_clip_path: /u/home/koksal/mlmi-vqa/models/PubMedCLIP_ViT32.pth
-  pretrained_language_path: /u/home/koksal/mlmi-vqa/models/gpt2-pytorch_model.bin
+  pretrained_language_path: null #/u/home/koksal/mlmi-vqa/models/gpt2-pytorch_model.bin
   pretrained_model_path: 
-  image_encoder: clip 
-  language_encoder: gpt2
-  vocab_size: 50258 
-  num_tokens: 50261
+  image_encoder_type: efficientnet #clip 
+  language_encoder: bert
+  weight_tie_gpt: False
+  vocab_size: 30522 #50258 
+  num_tokens: 30525  #50261
   flamingo_embed_dim: 768
   depth: 12
-  dim_head: 
   num_heads: 8
   att_head_dim: 64
   cross_att_every: 3
@@ -40,50 +42,52 @@ model:
   train_embedding_layer: True
   use_positional_embedding: True
   use_image_embeddings: True
-  label_smoothing: 0.1
   token_label_smoothing: 0.1
-  classifier_dropout: 0.5
+  label_smoothing: 0.1
+  classifier_dropout: 0.1
+  use_generation_loss: False
+  token_average_classification: False
+  classify_only_image_features: False
+  freeze_image_encoder: False
   #img_encoder_out_dim: 512
 
-  # Number of Unique Answers in dataset
-  num_classification_classes: 374
+  # Number of Unique Answers in dataset 433 + 1
+  num_classification_classes: 517
   return_idx_eoc: True
 
-
 optimizer:
-  script_path: ../optimizers/adam_keras.py
-  initial_lr: 0.0001
+  gradient_clip: 0.1
+  name: adamw
+  weight_decay: 0.1
 
+scheduler: True
 
 train:
   script_path: ../train/train_keras.py
   artifacts_path: ../artifacts/cifar10_opt/
   batch_size: 64
-  num_epochs: 80
+  num_epochs: 300
   warm_up_steps: 0
-  learning_rate: 0.001
-  devices: 
-    - 6
+  learning_rate: 0.00005
+  devices:
+    - 5
   accelerator: gpu
   warmup_steps: 0
-  data_augmentation:
+  augmentation:
+    resize_size: [224, 224]
+    random_rotation: 10
+    random_resize_scale: [0.5,1.0]
+    random_resize_ratio: [0.75,1.333]
+    color_jitter:
+      brightness: 0.4
+      contrast: 0.4
+      saturation: 0.4
+      hue: 0.4
+  
+
+test:
+  batch_size: 1000
+  augmentation:
     resize_size: [224, 224]
     horizontal_flip: 0.5
     random_rotation: 10
-
-evaluate:
-  batch_size: 1000
-  augmentation_factor: 32
-  data_augmentation:
-    samplewise_center: False
-    samplewise_std_normalization: False
-    rotation_range: 0
-    width_shift_range: 0.15
-    height_shift_range: 0.15
-    horizontal_flip: True
-    vertical_flip: False
-    zoom_range: 0
-    shear_range: 0
-    channel_shift_range: 0
-    featurewise_center: False
-    zca_whitening: False

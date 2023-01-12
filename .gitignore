@@ -176,3 +176,7 @@ lightning_logs/*
 wandb/*
 data/external/
 models/gpt2-pytorch_model.bin
+notebooks/wandb
+data/
+models/PubMedCLIP_ViT32.pth
+models/.nfs0000000000ea0cf700002221

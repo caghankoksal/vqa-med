@@ -224,7 +224,10 @@ class FlamingoModel(nn.Module):
         flamingo_mode = True,
         context_size = 256,
         train_embedding_layer = True,
-        use_positional_embedding = True
+        use_positional_embedding = True,
+        classify_only_image_features = False,
+        weight_tie_gpt = True,
+        freeze_image_encoder = True
 
     ):
 
@@ -233,6 +236,8 @@ class FlamingoModel(nn.Module):
         self.dim = dim
         self.classification_mode = classification_mode
         self.language_model = language_model
+        self.weight_tie_gpt = weight_tie_gpt
+        self.classify_only_image_features = classify_only_image_features
 
         if language_model == 'gpt2':
             self.token_emb = nn.Embedding(num_tokens, dim)
@@ -245,7 +250,7 @@ class FlamingoModel(nn.Module):
             bert_weights = self.bert_embedding.word_embeddings.weight
             self.bert_embedding.word_embeddings = nn.Embedding(num_tokens, dim)
     
-            self.bert_embedding.word_embeddings.weight.data[: self.num_tokens - 4] = bert_weights
+            self.bert_embedding.word_embeddings.weight.data[: self.num_tokens - 3] = bert_weights
             
         
             print('Bert Embeddings are loaded ')
@@ -260,7 +265,10 @@ class FlamingoModel(nn.Module):
         self.flamingo_mode = flamingo_mode
         self.train_embedding_layer=train_embedding_layer
         self.use_positional_embedding = use_positional_embedding
-        freeze_model_and_make_eval_(self.img_encoder)
+
+
+        if freeze_image_encoder:
+            freeze_model_and_make_eval_(self.img_encoder)
 
         print('Perceiver Resampler is being initialized')
         self.perceiver_resampler = PerceiverResampler(
@@ -272,8 +280,12 @@ class FlamingoModel(nn.Module):
         )
         print('Perceiver Resampler is initialized')
 
+        
+
+
+
         self.img_encoder_outdim_layer = None
-        if self.img_encoder_outdim != self.dim:
+        if not self.classify_only_image_features and self.img_encoder_outdim != self.dim:
             self.img_encoder_outdim = img_encoder_outdim
             self.img_encoder_outdim_layer = nn.Linear(img_encoder_outdim, self.dim)
         print('img encoder outdim initialized')
@@ -314,8 +326,7 @@ class FlamingoModel(nn.Module):
         if language_model == "gpt2" and pretrained_gpt2_path is not None:
             self.load_gpt2_weights(pretrained_gpt2_path)
 
-        weight_tie_gpt = True
-        if language_model == "gpt2" and weight_tie_gpt==True:
+        if language_model == "gpt2" and self.weight_tie_gpt==True:
             # they used embedding weight tied projection out to logits, not common, but works
             self.to_logits[-1].weight = self.token_emb.weight
             #nn.init.normal_(self.token_emb.weight, std=0.02)
@@ -374,7 +385,7 @@ class FlamingoModel(nn.Module):
             unfreeze_all_layers_(self)
         # This is downsample layer which is not used in Flamingo to reduce the dimensionality of the image embedding
         # given by the clip
-        if self.img_encoder_outdim != self.dim:
+        if self.img_encoder_outdim != self.dim and not self.classify_only_image_features:
             unfreeze_all_layers_(self.img_encoder_outdim_layer)
 
         if self.train_embedding_layer:
@@ -401,7 +412,6 @@ class FlamingoModel(nn.Module):
 
         elif self.language_model=='bert':
             text_tokens = self.bert_embedding(input_ids=text, token_type_ids=token_type_ids, position_ids=None)
-
         #print('Image embeds', image_embeds.shape)
         #assert not (exists(images) and exists(image_embeds))
 

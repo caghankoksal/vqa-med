@@ -22,8 +22,8 @@ from sklearn import model_selection
 ## NOTE: The VQA RAD dataset has 107 unique chest xray images and ~700 QAs
 
 class VQARadDataset(Dataset):
-    def __init__(self, root, answers2label_path, label2answer_path, mode='train', samples=None, transform=None,
-                tokenizer='scibert', tokenizer_add_special_tokens=True, 
+    def __init__(self, root, answers2label_path, label2answer_path, mode='train', samples=None, 
+                transform=None, tokenizer='scibert', tokenizer_add_special_tokens=True, 
                 token_max_length=256, load_in_memory=False, return_idx_answer_eoc = True):
         self.root = root
         self.transform = transform
@@ -31,7 +31,7 @@ class VQARadDataset(Dataset):
         self.load_in_memory = load_in_memory
         #self.jpeg = TurboJPEG()
         self.mode = mode
-        self.tokenizer_type ='gpt2'
+        #self.tokenizer_type ='gpt2'
         self.token_max_len = token_max_length
         self.return_idx_answer_eoc = return_idx_answer_eoc
 
@@ -65,6 +65,9 @@ class VQARadDataset(Dataset):
         elif tokenizer == "scratch":
             # TODO : Implement a scratch tokenizer
             pass
+        elif tokenizer =='bert':
+            self.tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
+            print('BERT Tokenizer is initalized')
         elif tokenizer is None:
             self.tokenizer = None
 
@@ -115,16 +118,23 @@ class VQARadDataset(Dataset):
             cur_sample['label'] = label
             #text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + '<EOQ>' + question + ' Answer: ' + str(answer) + ' <EOC>'
               # Put image at the beginning of the explanation
-            text = self.tokenizer.bos_token + ' ' + '<image> ' + 'question: ' + cur_sample["question"] +\
+
+            if self.tokenizer.name_or_path == 'gpt2':
+                text = self.tokenizer.bos_token + ' ' + '<image> ' + 'question: ' + cur_sample["question"] +\
                                 ' <EOQ>' +' answer: '+cur_sample["answer"] + ' <EOC>'
+            elif self.tokenizer.name_or_path == 'bert-base-uncased':
+                text = '<image> ' + 'question: ' + cur_sample["question"] +\
+                                ' <EOQ>' +' answer: '+cur_sample["answer"] + ' <EOC>'
+
         #print('text : ',text)
         input_encoding = self.tokenizer.encode_plus(text, padding='max_length', truncation=True, max_length=self.token_max_len, return_tensors="pt")
 
-        if self.tokenizer_type == 'gpt2':
+        if  self.tokenizer.name_or_path  == 'gpt2':
             input_ids = input_encoding['input_ids']
             token_type_ids = input_encoding['attention_mask']
-        elif self.tokenizer_type == 'bert':
-            pass
+        elif self.tokenizer.name_or_path == 'bert-base-uncased':
+            input_ids = input_encoding['input_ids']
+            token_type_ids = input_encoding['attention_mask']
         else:
             input_ids = input_encoding['input_ids']
             token_type_ids = input_encoding['token_type_ids']
