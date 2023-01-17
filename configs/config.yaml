@@ -4,8 +4,8 @@ pretrained: null
 dataset:
   imageclef_path: /u/home/koksal/mlmi-vqa/data/external/imageclef/
   vqa_rad_path: /u/home/koksal/mlmi-vqa/data/external/VQA_RAD
-  answers2label_path: /u/home/koksal/mlmi-vqa/data/answer2label_vqarad_concat.json
-  label2answer_path: /u/home/koksal/mlmi-vqa/data/label2answer_vqarad_concat.json
+  answers2label_path: '/u/home/koksal/mlmi-vqa/data/cache/trainval_ans2label.pkl' #/u/home/koksal/mlmi-vqa/data/answer2label_vqarad.json #/u/home/koksal/mlmi-vqa/data/answer2label_vqarad_concat.json
+  label2answer_path: '/u/home/koksal/mlmi-vqa/data/cache/trainval_label2ans.pkl'  #/u/home/koksal/mlmi-vqa/data/label2vqarad.json #/u/home/koksal/mlmi-vqa/data/label2answer_vqarad_concat.json
   mimic_cxr_jpg_path:
   
   split_path: /home/mlmi-matthias/Caghan/mlmi-vqa/data/external/
@@ -45,14 +45,14 @@ model:
   token_label_smoothing: 0.1
   label_smoothing: 0.1
   classifier_dropout: 0.1
-  use_generation_loss: False
+  use_generation_loss: False  
   token_average_classification: False
   classify_only_image_features: False
   freeze_image_encoder: False
   #img_encoder_out_dim: 512
 
   # Number of Unique Answers in dataset 433 + 1
-  num_classification_classes: 517
+  num_classification_classes: 458 #433 #517
   return_idx_eoc: True
 
 optimizer:
@@ -63,9 +63,7 @@ optimizer:
 scheduler: True
 
 train:
-  script_path: ../train/train_keras.py
-  artifacts_path: ../artifacts/cifar10_opt/
-  batch_size: 64
+  batch_size: 128
   num_epochs: 300
   warm_up_steps: 0
   learning_rate: 0.00005

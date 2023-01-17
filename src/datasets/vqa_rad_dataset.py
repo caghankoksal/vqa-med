@@ -17,23 +17,90 @@ from PIL import Image
 from torchvision import transforms
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM,PreTrainedTokenizerFast, GPT2Tokenizer
 from sklearn import model_selection
-#from turbojpeg import TurboJPEG
-
+import _pickle as cPickle
+import src.datasets.utils as utils
 ## NOTE: The VQA RAD dataset has 107 unique chest xray images and ~700 QAs
 
+COUNTING_ONLY = False
+def is_howmany(q, a, label2ans):
+    if 'how many' in q.lower() or \
+       ('number of' in q.lower() and 'number of the' not in q.lower()) or \
+       'amount of' in q.lower() or \
+       'count of' in q.lower():
+        if a is None or answer_filter(a, label2ans):
+            return True
+        else:
+            return False
+    else:
+        return False
+
+def answer_filter(answers, label2ans, max_num=10):
+    for ans in answers['labels']:
+        if label2ans[ans].isdigit() and max_num >= int(label2ans[ans]):
+            return True
+    return False
+
+
+def _create_entry(img, data, answer):
+    if None!=answer:
+        answer.pop('image_name')
+        answer.pop('qid')
+    entry = {
+        'qid' : data['qid'],
+        'image_name'    : data['image_name'],
+        'image'       : img,
+        'question'    : data['question'],
+        'answer'      : answer,
+        'answer_text' : data['answer'],
+        'answer_type' : data['answer_type'],
+        'question_type': data['question_type'],
+        'phrase_type' : data['phrase_type']}
+    return entry
+
+
+def _load_dataset(dataroot, name, img_id2val, label2ans):
+    """Load entries
+    img_id2val: dict {img_id -> val} val can be used to retrieve image or features
+    dataroot: root path of dataset
+    name: 'train', 'val', 'test'
+    """
+    data_path = os.path.join(dataroot, name + 'set.json')
+    samples = json.load(open(data_path))
+    samples = sorted(samples, key=lambda x: x['qid'])
+    print(f'Samples length  {name} :  {len(samples)}')
+
+    answer_path = os.path.join(dataroot, 'cache', '%s_target.pkl' % name)
+    answers = cPickle.load(open(answer_path, 'rb'))
+    answers = sorted(answers, key=lambda x: x['qid'])
+    print(f'answers length  {name} :  {len(answers)}')
+
+    utils.assert_eq(len(samples), len(answers))
+    entries = []
+    for sample, answer in zip(samples, answers):
+        utils.assert_eq(sample['qid'], answer['qid'])
+        utils.assert_eq(sample['image_name'], answer['image_name'])
+        img_id = sample['image_name']
+        #if not COUNTING_ONLY or is_howmany(sample['question'], answer, label2ans):
+        if not COUNTING_ONLY or is_howmany(sample['question'], answer, label2ans):
+            entries.append(_create_entry(img_id2val[img_id], sample, answer))
+
+    return entries
+
+    
 class VQARadDataset(Dataset):
-    def __init__(self, root, answers2label_path, label2answer_path, mode='train', samples=None, 
+    def __init__(self, root, ans2label, label2ans, mode='train', samples=None, 
                 transform=None, tokenizer='scibert', tokenizer_add_special_tokens=True, 
-                token_max_length=256, load_in_memory=False, return_idx_answer_eoc = True):
+                token_max_length=64, load_in_memory=False, return_idx_answer_eoc = True):
         self.root = root
         self.transform = transform
         self.samples = samples
         self.load_in_memory = load_in_memory
-        #self.jpeg = TurboJPEG()
         self.mode = mode
-        #self.tokenizer_type ='gpt2'
         self.token_max_len = token_max_length
         self.return_idx_answer_eoc = return_idx_answer_eoc
+
+        self.ans2label = ans2label
+        self.label2ans = label2ans
 
         # # Create answers dictionary
         # answer_list = []
@@ -47,12 +114,8 @@ class VQARadDataset(Dataset):
         #     self.answer_to_label[ans] = i
         #     self.label_to_answer[i] = ans
         
-        #/u/home/koksal/mlmi-vqa/data/answer2label_vqarad.json
-        self.answer_to_label =  json.load(open(answers2label_path))
-        self.label_to_answer = json.load(open(label2answer_path))
 
-        print('Num unique answers vqa-rad ', len(set(self.answer_to_label.keys())))
-
+        print('Num unique answers vqa-rad ', len(set(self.label2ans)))
 
         if tokenizer == "sciFive":
             self.tokenizer = AutoTokenizer.from_pretrained("razent/SciFive-large-Pubmed_PMC-MedNLI")
@@ -77,56 +140,56 @@ class VQARadDataset(Dataset):
             #self.tokenizer.bos_token = '<BOS>'
             num_added_toks = self.tokenizer.add_special_tokens(special_tokens_dict)
 
-
     def __len__(self):
         return len(self.samples)
 
+    def preprocess_question(self, sentence):
+        sentence = sentence.lower()
+        if "? -yes/no" in sentence:
+            sentence = sentence.replace("? -yes/no", "")
+        if "? -open" in sentence:
+            sentence = sentence.replace("? -open", "")
+        if "? - open" in sentence:
+            sentence = sentence.replace("? - open", "")
+        sentence = sentence.replace(',', '').replace('?', '').replace('\'s', ' \'s').replace('...', '').replace('x ray', 'x-ray').replace('.', '')
+
+        return sentence
+
     def __getitem__(self, idx):
-        cur_item = self.samples[idx]
         
+        # Cur item is from medvqa repo processing 
+        cur_item = self.samples[idx]
         image_name = cur_item["image_name"]
         answer = cur_item["answer"]
-        answer_type = cur_item["answer_type"]
-        question = cur_item["question"]
-        question_type = cur_item["question_type"]
-
+        question = cur_item["question"]        
 
         cur_sample = {}
-        cur_sample['answer'] = str(answer).strip().lower()
         cur_sample['image_name'] = image_name
-        cur_sample['answer_type'] = answer_type
         cur_sample['question'] = question
-        cur_sample['question_type'] = question_type
-        
 
-        if self.load_in_memory:
-            img = self.data_images[image_name]
-        else:
-            img = Image.open(os.path.join(self.root,'Images',cur_sample['image_name']))
+        #Normalize question according to med vqa processing
+        cur_sample['question'] = self.preprocess_question(cur_sample['question'])
 
+        img = Image.open(os.path.join(self.root,'Images',cur_sample['image_name']))
         if self.transform is not None:
             img = self.transform(img)
         else:
             img = transforms.ToTensor()(img)
         
-        
         # Put image at the beginning of the question
         if self.mode == "test":
             text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: '  + question + '<EOQ>' + ' Answer: '  + ' <EOC>'
         else:
-            label = self.answer_to_label.get(str(answer).strip().lower())
-            cur_sample['label'] = label
-            #text = self.tokenizer.bos_token + ' ' + '<image> ' + 'Question: ' + '<EOQ>' + question + ' Answer: ' + str(answer) + ' <EOC>'
-              # Put image at the beginning of the explanation
+            # Here how the input is proccessed for training 
+            cur_sample['label'] = answer['labels'][0]
 
             if self.tokenizer.name_or_path == 'gpt2':
                 text = self.tokenizer.bos_token + ' ' + '<image> ' + 'question: ' + cur_sample["question"] +\
-                                ' <EOQ>' +' answer: '+cur_sample["answer"] + ' <EOC>'
+                                ' <EOQ>' +' answer: '+ self.label2ans[cur_sample['label']]  + ' <EOC>'
+            # we are currently using bert 
             elif self.tokenizer.name_or_path == 'bert-base-uncased':
-                text = '<image> ' + 'question: ' + cur_sample["question"] +\
-                                ' <EOQ>' +' answer: '+cur_sample["answer"] + ' <EOC>'
+                text = '<image> ' + 'question: ' + cur_sample["question"] + ' <EOQ>' +' answer: '+ self.label2ans[cur_sample['label']] + ' <EOC>'
 
-        #print('text : ',text)
         input_encoding = self.tokenizer.encode_plus(text, padding='max_length', truncation=True, max_length=self.token_max_len, return_tensors="pt")
 
         if  self.tokenizer.name_or_path  == 'gpt2':
@@ -159,10 +222,13 @@ class VQARadDataset(Dataset):
             cur_sample["index_eoc"] = index_of_eoc
             cur_sample["index_eoq"] = index_of_eoq
 
+        
+        #cur_sample.pop('answer')
+        cur_sample.pop('image_name')
 
 
         # TODO create target without answer -> see what happens
-
+        # For Autoregressive decoding 
         targets = torch.cat( ( input_ids[:,1:], torch.tensor([pad_token_id]).unsqueeze(1) ), dim=1)
         cur_sample["input_ids"] = input_ids
         cur_sample["token_type_ids"] = token_type_ids
@@ -179,7 +245,6 @@ class VQRadDataModule(pl.LightningDataModule):
     def __init__(self, args, augmentations):
         
         super().__init__()
-
         
         self.augmentations = augmentations
         self.batch_size = args["train"]['batch_size']
@@ -197,19 +262,45 @@ class VQRadDataModule(pl.LightningDataModule):
         with open(os.path.join(self.root,'VQA-RAD_public.json'), 'r') as f:
             self.sample_dicts = json.load(f)
 
-        self.train_split= []
-        self.val_split = []
-        for sample in self.sample_dicts:
-            if sample['phrase_type'].startswith('test'):
-                self.val_split.append(sample)
-            else:
-                self.train_split.append(sample)
+        #self.train_split= []
+        #self.val_split = []
+        #for sample in self.sample_dicts:
+        #    if sample['phrase_type'].startswith('test'):
+        #        self.val_split.append(sample)
+        #    else:
+        #        self.train_split.append(sample)
+
+        #self.ans2label =  json.load(open(self.answers2label_path))
+        #self.label2ans = json.load(open(self.label2answer_path))
+        #print(f'Test set has {len(self.val_split)} questions before removing')
+        #self.val_split = [sample for sample in  self.val_split if  sample['answer'].lower().strip() in self.answer_to_label.keys() ]
+        #print(f'Test set has {len(self.val_split)} questions after removing')
+
+
+        self.ans2label = cPickle.load(open(self.answers2label_path, 'rb'))
+        self.label2ans = cPickle.load(open(self.label2answer_path, 'rb'))
+        self.num_ans_candidates = len(self.ans2label)
+
+        dataroot = '/u/home/koksal/mlmi-vqa/data'
+        # TODO: load img_id2idx
+        self.img_id2idx = json.load(open(os.path.join(dataroot, 'imgid2idx.json')))
+
+        self.train_split = _load_dataset(dataroot, 'train', self.img_id2idx, self.label2ans)
+        self.val_split = _load_dataset(dataroot, 'test', self.img_id2idx, self.label2ans)
+
+        print('Training split length ',len(self.train_split))
+        print('Test split length ',len(self.val_split))
+
+        # Eliminate Test set answers which are not in the test
+        self.val_split = [each for each in self.val_split if len(each['answer']['labels'])!= 0]
+        print('Test split length after removal ',len(self.val_split))
+
 
         # Official VQA RAD split does not have val split so currently just create workaround
         #self.test_split = self.val_split.copy()
 
-        print(f'There are {len(self.sample_dicts)} QA pairs in VQA-RAD dataset')
-        print(f'Training set has {len(self.train_split)} Test set has {len(self.val_split)} questions')
+        #print(f'There are {len(self.sample_dicts)} QA pairs in VQA-RAD dataset')
+        #print(f'Training set has {len(self.train_split)} Test set has {len(self.val_split)} questions')
 
         # only use 90% for train-val, 10% is always test
         # from which train is 80% and val is 20%
@@ -223,15 +314,15 @@ class VQRadDataModule(pl.LightningDataModule):
             self.val_split = self.val_split[:self.limit_num_samples]
             self.test_split = self.val_split[:self.limit_num_samples]
 
-        self.train_dataset = VQARadDataset(self.root,  self.answers2label_path, self.label2answer_path, 
+        self.train_dataset = VQARadDataset(self.root,  self.ans2label, self.label2ans, 
                                           mode='train', samples=self.train_split, transform=self.augmentations["train"],
                                           tokenizer=self.tokenizer, load_in_memory = self.load_in_memory)
 
-        self.validation_dataset = VQARadDataset(self.root, self.answers2label_path, self.label2answer_path, 
+        self.validation_dataset = VQARadDataset(self.root, self.ans2label, self.label2ans, 
                                                 mode='val', samples=self.val_split, transform=self.augmentations["val"],
                                                 tokenizer=self.tokenizer, load_in_memory = self.load_in_memory)
 
-        self.test_dataset = VQARadDataset(self.root, self.answers2label_path, self.label2answer_path,
+        self.test_dataset = VQARadDataset(self.root, self.ans2label, self.label2ans,
                                          mode='test', samples=self.val_split, transform=self.augmentations["val"], 
                                          tokenizer=self.tokenizer, load_in_memory = self.load_in_memory)
 

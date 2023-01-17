@@ -241,15 +241,13 @@ class FlamingoModule(pl.LightningModule):
         if self.classify_only_image_features:
             class_labels = batch["label"]
             index_eoq = batch["index_eoq"]
-            from einops import rearrange
-            #images = rearrange(images, "b t ... -> (b t) ...")
 
             with torch.no_grad():
                 image_embeds = self.flamingo_palm.img_encoder(images)
 
 
             classification_logits = self.classifier(image_embeds.squeeze(1))
-            # Calculate validation accuracy
+            # Calculate training accuracy
             train_acc = (torch.argmax(classification_logits, dim=1) == class_labels).float().mean()
             self.log(
                 "train_acc",

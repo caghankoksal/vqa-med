@@ -13,7 +13,7 @@ from transformers import AutoTokenizer, AutoModelForSeq2SeqLM,PreTrainedTokenize
 from tqdm import tqdm as tqdm
 import torchvision.transforms as T
 
-class RocoDataset(Dataset):
+class   RocoDataset(Dataset):
     """
     Dtaset for loading image-text data for tasks like CLIP training, Image Captioning.
     Args:
