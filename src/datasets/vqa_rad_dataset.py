@@ -121,10 +121,12 @@ class VQARadDataset(Dataset):
             self.tokenizer = AutoTokenizer.from_pretrained("razent/SciFive-large-Pubmed_PMC-MedNLI")
         elif tokenizer == "scibert":
             self.tokenizer = AutoTokenizer.from_pretrained("allenai/scibert_scivocab_uncased")
+        elif tokenizer == "bert-clinical":
+            self.tokenizer = AutoTokenizer.from_pretrained('emilyalsentzer/Bio_ClinicalBERT')
+
         elif tokenizer == "gpt2":
             self.tokenizer = AutoTokenizer.from_pretrained("gpt2")
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-
         elif tokenizer == "scratch":
             # TODO : Implement a scratch tokenizer
             pass
@@ -188,7 +190,10 @@ class VQARadDataset(Dataset):
                                 ' <EOQ>' +' answer: '+ self.label2ans[cur_sample['label']]  + ' <EOC>'
             # we are currently using bert 
             elif self.tokenizer.name_or_path == 'bert-base-uncased':
-                text = '<image> ' + 'question: ' + cur_sample["question"] + ' <EOQ>' +' answer: '+ self.label2ans[cur_sample['label']] + ' <EOC>'
+                text = '<image> ' + 'question: ' + cur_sample["question"] + ' <EOQ>' #+' answer: '+ self.label2ans[cur_sample['label']] + ' <EOC>'
+
+            elif self.tokenizer.name_or_path == 'emilyalsentzer/Bio_ClinicalBERT':
+                text = '<image> ' + 'question: ' + cur_sample["question"] + ' <EOQ>' #+' answer: '+ self.label2ans[cur_sample['label']] + ' <EOC>'
 
         input_encoding = self.tokenizer.encode_plus(text, padding='max_length', truncation=True, max_length=self.token_max_len, return_tensors="pt")
 
@@ -198,6 +203,11 @@ class VQARadDataset(Dataset):
         elif self.tokenizer.name_or_path == 'bert-base-uncased':
             input_ids = input_encoding['input_ids']
             token_type_ids = input_encoding['attention_mask']
+        
+        elif self.tokenizer.name_or_path == 'emilyalsentzer/Bio_ClinicalBERT':
+            input_ids = input_encoding['input_ids']
+            token_type_ids = input_encoding['attention_mask']
+
         else:
             input_ids = input_encoding['input_ids']
             token_type_ids = input_encoding['token_type_ids']
@@ -209,17 +219,20 @@ class VQARadDataset(Dataset):
             # 3280 is the index of the : token since we use Answer: 
             #index_of_answer = (input_ids==3280).nonzero()[0][-1].item()
             # Index of  ':' token which comes after answer: so we use its embedding for classifcation
-            ans_token_id = self.tokenizer.convert_tokens_to_ids(':')
-            index_of_answer = (input_ids==ans_token_id).nonzero()[0][-1].item()
-            # End of Chunk
-            eoc_token_id = self.tokenizer.convert_tokens_to_ids('<EOC>')
-            index_of_eoc = (input_ids==eoc_token_id).nonzero()[0][-1].item()
-            # # End of Question
+            #ans_token_id = self.tokenizer.convert_tokens_to_ids(':')
+            #index_of_answer = (input_ids==ans_token_id).nonzero()[0][-1].item()
+
+             # # End of Question
             eoq_token_id = self.tokenizer.convert_tokens_to_ids('<EOQ>')
             index_of_eoq = (input_ids==eoq_token_id).nonzero()[0][-1].item()
+
+            # End of Chunk
+            # eoc_token_id = self.tokenizer.convert_tokens_to_ids('<EOC>')
+            # index_of_eoc = (input_ids==eoc_token_id).nonzero()[0][-1].item()
+           
             
-            cur_sample["index_answer"] = index_of_answer
-            cur_sample["index_eoc"] = index_of_eoc
+            #cur_sample["index_answer"] = index_of_answer
+            #cur_sample["index_eoc"] = index_of_eoc
             cur_sample["index_eoq"] = index_of_eoq
 
         
