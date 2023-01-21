@@ -9,6 +9,10 @@ from ..text.bert_layers import TransformerBlockBERT
 from .flamingo_pytorch_original import GatedCrossAttentionBlock, PerceiverResampler
 from transformers import BertTokenizer, BertModel
 
+ # Generator 
+from transformers import (BertGenerationDecoder, BertLayer, BertConfig)
+
+from copy import deepcopy
 
 
 def exists(val):
@@ -57,9 +61,10 @@ class Residual(nn.Module):
     def __init__(self, fn):
         super().__init__()
         self.fn = fn
+        
 
-    def forward(self, x):
-        return self.fn(x) + x
+    def forward(self, x):        
+        return self.fn(x)[0] + x
 
 
 # rotary positional embedding
@@ -239,22 +244,43 @@ class FlamingoModel(nn.Module):
         self.weight_tie_gpt = weight_tie_gpt
         self.classify_only_image_features = classify_only_image_features
 
+       
+
+        
+
         if language_model == 'gpt2':
             self.token_emb = nn.Embedding(num_tokens, dim)
             self.wpe = nn.Embedding(context_size, dim)
-        elif language_model == 'bert':
+        elif language_model == 'bert-base-uncased':
+            self.bert_decoder = BertGenerationDecoder.from_pretrained("bert-base-uncased", add_cross_attention=False, is_decoder=True, bos_token_id=None, eos_token_id=None)
+            #base_model = BertModel.from_pretrained('bert-base-uncased')
+            #bert_model = nn.Sequential(*list(base_model.children())[0:])
+            #self.bert_embedding = bert_model[0]
+            self.bert_embedding = self.bert_decoder.bert.embeddings
+            #torch.Size([30522, 768])
+            bert_weights = deepcopy(self.bert_embedding.word_embeddings.weight)
+            self.bert_embedding.word_embeddings = nn.Embedding(num_tokens, dim)
+            self.bert_embedding.word_embeddings.weight.data[: self.num_tokens - 3] = bert_weights
+    
+            print('Bert Embeddings are loaded ')
+
+        elif language_model =='bert-scratch':
             base_model = BertModel.from_pretrained('bert-base-uncased')
             bert_model = nn.Sequential(*list(base_model.children())[0:])
             self.bert_embedding = bert_model[0]
-            #torch.Size([30522, 768])
-            bert_weights = self.bert_embedding.word_embeddings.weight
+            bert_weights = deepcopy(self.bert_embedding.word_embeddings.weight)
             self.bert_embedding.word_embeddings = nn.Embedding(num_tokens, dim)
-    
+            self.bert_embedding.word_embeddings.weight.data[: self.num_tokens - 3] = bert_weights
+
+
+        elif language_model == 'bert-clinical':
+            self.bert_decoder = BertGenerationDecoder.from_pretrained('emilyalsentzer/Bio_ClinicalBERT', add_cross_attention=False, is_decoder=True, bos_token_id=None, eos_token_id=None)
+            self.bert_embedding = self.bert_decoder.bert.embeddings
+            #torch.Size([30522, 768])
+            bert_weights = deepcopy(self.bert_embedding.word_embeddings.weight)
+            self.bert_embedding.word_embeddings = nn.Embedding(num_tokens, dim)
             self.bert_embedding.word_embeddings.weight.data[: self.num_tokens - 3] = bert_weights
             
-        
-            print('Bert Embeddings are loaded ')
-
 
         self.drop = nn.Dropout(0.1)
         self.media_token_id = (
@@ -281,43 +307,74 @@ class FlamingoModel(nn.Module):
         print('Perceiver Resampler is initialized')
 
         
-
-
-
         self.img_encoder_outdim_layer = None
         if not self.classify_only_image_features and self.img_encoder_outdim != self.dim:
             self.img_encoder_outdim = img_encoder_outdim
             self.img_encoder_outdim_layer = nn.Linear(img_encoder_outdim, self.dim)
         print('img encoder outdim initialized')
         self.layers = nn.ModuleList([])
+
         for ind in range(depth):
-            self.layers.append(
-                nn.ModuleList(
-                    [
-                        # According to parameter, palm or gpt2 transformer blocks are used.
-                        Residual(
-                        #    ParallelTransformerBlock(
-                        #        dim=dim, dim_head=dim_head, heads=heads, ff_mult=ff_mult
-                        #    )
-                        TransformerBlockGPT2(
-                                d_model=dim, n_head=depth, dropout=0.1
-                            )
-                        if language_model == "gpt2"
-                        else TransformerBlockBERT(
-                                hidden_size=dim,
-                            )
-                        ),
-                        GatedCrossAttentionBlock(
+    
+            if language_model == "bert-base-uncased":
+                trans_layer = self.bert_decoder.base_model.encoder.layer[ind]
+
+            elif language_model == 'bert-scratch':
+                trans_layer = TransformerBlockBERT(hidden_size=dim)
+            
+            elif language_model == 'gpt2':
+                trans_layer = TransformerBlockGPT2(d_model=dim, n_head=depth, dropout=0.1)
+
+            elif language_model == 'bert-clinical':
+                trans_layer = self.bert_decoder.base_model.encoder.layer[ind]
+                
+            
+
+            if not (ind % cross_attn_every):
+                gcat_block = GatedCrossAttentionBlock(
                             dim=dim,
                             dim_head=dim_head,
                             heads=heads,
                             only_attend_immediate_media=only_attend_immediate_media,
                         )
-                        if not (ind % cross_attn_every)
-                        else None,
-                    ]
-                )
-            )
+            else:
+                gcat_block = None
+
+            self.layers.append(
+                nn.ModuleList(
+                    [Residual(trans_layer), gcat_block]))
+
+
+        # for ind in range(depth):
+        #     self.layers.append(
+        #         nn.ModuleList(
+        #             [
+        #                 # According to parameter, palm or gpt2 transformer blocks are used.
+        #                 Residual(
+        #                 #    ParallelTransformerBlock(
+        #                 #        dim=dim, dim_head=dim_head, heads=heads, ff_mult=ff_mult
+        #                 #    )
+        #                 #TransformerBlockGPT2(
+        #                 #        d_model=dim, n_head=depth, dropout=0.1
+        #                 #    )
+        #                 self.bert_decoder.base_model.encoder.layer[ind]
+
+        #                 if language_model == "bert-base-uncased"
+        #                 else TransformerBlockBERT(
+        #                         hidden_size=dim,
+        #                     )
+        #                 ),
+        #                 GatedCrossAttentionBlock(
+        #                     dim=dim,
+        #                     dim_head=dim_head,
+        #                     heads=heads,
+        #                     only_attend_immediate_media=only_attend_immediate_media,
+        #                 )
+        #                 if not (ind % cross_attn_every)
+        #                 else None,
+        #             ]
+        #         )
+        #     )
         print('Layers are initializzed')
         self.to_logits = nn.Sequential(
             LayerNorm(dim), nn.Linear(dim, num_tokens, bias=False)
@@ -410,8 +467,16 @@ class FlamingoModel(nn.Module):
                 pos_ids = torch.arange(0, text.size(-1),device=device).unsqueeze(0)
                 text_tokens = self.drop(text_tokens + self.wpe(pos_ids))
 
-        elif self.language_model=='bert':
-            text_tokens = self.bert_embedding(input_ids=text, token_type_ids=token_type_ids, position_ids=None)
+        elif self.language_model=='bert-base-uncased' :
+            text_tokens = self.bert_embedding(input_ids=text)#, attention_mask=token_type_ids, position_ids=None)
+            #print('Bert text tokens', text_tokens.shape)
+        
+        elif self.language_model=='bert-scratch':
+            text_tokens = self.bert_embedding(input_ids=text, attention_mask=token_type_ids, position_ids=None)
+        
+        elif self.language_model=='bert-clinical' :
+            text_tokens = self.bert_embedding(input_ids=text)#, attention_mask=token_type_ids, position_ids=None)
+            #print('Bert text tokens', text_tokens.shape)
         #print('Image embeds', image_embeds.shape)
         #assert not (exists(images) and exists(image_embeds))
 
