@@ -17,10 +17,16 @@ from pytorch_lightning import loggers as pl_loggers
 from src.utils.utils import load_config
 import wandb
 
+import argparse
+
 if __name__ == '__main__':
     seed_everything(42, workers=True)
 
-    args = load_config('/u/home/koksal/mlmi-vqa/configs','config.yaml')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', type=str, default='config.yaml')
+    args = parser.parse_args()
+
+    args = load_config(f'/u/home/koksal/mlmi-vqa/configs',{args.config})
      
     #img_mean = (0.48,0.48,0.48)
     #img_std = (0.265,0.265,0.265)
@@ -58,7 +64,7 @@ if __name__ == '__main__':
         ])
     }
 
-    wandb.init(project="flamingo-research", config=args)
+    wandb.init(project="flamingo-research_final", config=args)
     mimic_datamodule = VQRadDataModule(args, augmentations= augmentations)
     # Data Loaders
     train_loader = mimic_datamodule.train_dataloader()
