@@ -8,14 +8,13 @@ dataset:
   label2answer_path: '/u/home/koksal/mlmi-vqa/data/cache/trainval_label2ans.pkl'  #/u/home/koksal/mlmi-vqa/data/label2vqarad.json #/u/home/koksal/mlmi-vqa/data/label2answer_vqarad_concat.json
   mimic_cxr_jpg_path:
   
-  split_path: /home/mlmi-matthias/Caghan/mlmi-vqa/data/external/
   num_workers: 4
   only_images: False
   limit_num_samples: null
   shuffle: True
   load_in_memory: False
   preprocessed: False
-  tokenizer: "bert-clinical"
+  tokenizer: pubmedbert
   mean: [0.485, 0.456, 0.406]
   std:  [0.229, 0.224, 0.225]
 
@@ -25,10 +24,10 @@ model:
   pretrained_language_path: null #/u/home/koksal/mlmi-vqa/models/gpt2-pytorch_model.bin
   pretrained_model_path: 
   image_encoder_type: efficientnet #clip 
-  language_encoder: bert-clinical
+  language_encoder: pubmedbert
   weight_tie_gpt: False
-  vocab_size: 28996 #30522 #50258 
-  num_tokens: 28999 #30525  #50261
+  vocab_size:  30522 #50258 
+  num_tokens:  30525  #50261
   flamingo_embed_dim: 768
   depth: 12
   num_heads: 8

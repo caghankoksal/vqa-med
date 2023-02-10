@@ -280,8 +280,15 @@ class FlamingoModel(nn.Module):
             bert_weights = deepcopy(self.bert_embedding.word_embeddings.weight)
             self.bert_embedding.word_embeddings = nn.Embedding(num_tokens, dim)
             self.bert_embedding.word_embeddings.weight.data[: self.num_tokens - 3] = bert_weights
-            
-
+        
+        elif language_model == 'pubmedbert':
+            self.bert_decoder = BertGenerationDecoder.from_pretrained('microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext', add_cross_attention=False, is_decoder=True, bos_token_id=None, eos_token_id=None)
+            self.bert_embedding = self.bert_decoder.bert.embeddings
+            #torch.Size([30522, 768])
+            bert_weights = deepcopy(self.bert_embedding.word_embeddings.weight)
+            self.bert_embedding.word_embeddings = nn.Embedding(num_tokens, dim)
+            self.bert_embedding.word_embeddings.weight.data[: self.num_tokens - 3] = bert_weights
+        
         self.drop = nn.Dropout(0.1)
         self.media_token_id = (
             media_token_id  # you need to reserve a special token id for media
@@ -316,7 +323,7 @@ class FlamingoModel(nn.Module):
 
         for ind in range(depth):
     
-            if language_model == "bert-base-uncased":
+            if (language_model == "bert-base-uncased") or (language_model == 'bert-clinical') or (language_model == 'pubmedbert'):
                 trans_layer = self.bert_decoder.base_model.encoder.layer[ind]
 
             elif language_model == 'bert-scratch':
@@ -324,10 +331,7 @@ class FlamingoModel(nn.Module):
             
             elif language_model == 'gpt2':
                 trans_layer = TransformerBlockGPT2(d_model=dim, n_head=depth, dropout=0.1)
-
-            elif language_model == 'bert-clinical':
-                trans_layer = self.bert_decoder.base_model.encoder.layer[ind]
-                
+                        
             
 
             if not (ind % cross_attn_every):

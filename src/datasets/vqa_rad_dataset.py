@@ -123,7 +123,8 @@ class VQARadDataset(Dataset):
             self.tokenizer = AutoTokenizer.from_pretrained("allenai/scibert_scivocab_uncased")
         elif tokenizer == "bert-clinical":
             self.tokenizer = AutoTokenizer.from_pretrained('emilyalsentzer/Bio_ClinicalBERT')
-
+        elif tokenizer == 'pubmedbert':
+            self.tokenizer = AutoTokenizer.from_pretrained('microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext')
         elif tokenizer == "gpt2":
             self.tokenizer = AutoTokenizer.from_pretrained("gpt2")
             self.tokenizer.add_special_tokens({'pad_token': '[PAD]'})

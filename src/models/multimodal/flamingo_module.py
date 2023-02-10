@@ -82,10 +82,15 @@ class FlamingoModule(pl.LightningModule):
             self.img_encoder_outdim = None
 
         elif image_encoder_type == "efficientnet":
-            from efficientnet_pytorch import EfficientNet
-            image_encoder = EfficientNet.from_name('efficientnet-b0')
-            image_encoder._fc = nn.Identity()
-            self.img_encoder_outdim = 1280
+            #from efficientnet_pytorch import EfficientNet
+            #image_encoder = EfficientNet.from_name('efficientnet-b0')
+
+            import timm
+            image_encoder = timm.create_model('tf_efficientnet_b5', pretrained=True)
+            #config = resolve_data_config({}, model=self.model)
+            #self.transforms = create_transform(**config)
+            image_encoder.classifier = nn.Identity()
+            self.img_encoder_outdim = 2048
         
 
         # It should be better if single Flamingo model is created and used with both GPT2 and Palm

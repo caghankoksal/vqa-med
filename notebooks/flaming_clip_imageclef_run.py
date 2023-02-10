@@ -17,28 +17,22 @@ from pytorch_lightning import loggers as pl_loggers
 from src.utils.utils import load_config
 import wandb
 
-import argparse
+from src.datasets.imageclef_dataset import ImageCLEF2021DataModule
+
 
 if __name__ == '__main__':
     seed_everything(42, workers=True)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, default='config.yaml')
-    args = parser.parse_args()
-
-    args = load_config('../configs',args.config)
+    args = load_config('/u/home/koksal/mlmi-vqa/configs','config.yaml')
      
-    #img_mean = (0.48,0.48,0.48)
-    #img_std = (0.265,0.265,0.265)
-    #img_mean = (0.48,0.48,0.48)
-    #img_std = (0.265,0.265,0.265)
+
 
     augmentations = {'train':
         T.Compose(
         [   
             T.Resize((args['train']['augmentation']['resize_size'])),
-            T.CenterCrop(args['train']['augmentation']['center_crop_size']),
-            #T.RandomResizedCrop(args['train']['augmentation']['random_resize_size'],scale=args['train']['augmentation']['random_resize_scale'],
+            
+            #T.RandomResizedCrop(224,scale=args['train']['augmentation']['random_resize_scale'],
             #                    ratio=args['train']['augmentation']['random_resize_ratio']),
             T.RandomRotation((args['train']['augmentation']['random_rotation'])),
             T.ColorJitter(brightness=args['train']['augmentation']['color_jitter']['brightness'],
@@ -65,8 +59,15 @@ if __name__ == '__main__':
         ])
     }
 
-    wandb.init(project="flamingo-research_final", config=args)
-    mimic_datamodule = VQRadDataModule(args, augmentations= augmentations)
+    wandb.init(project="flamingo-research", config=args)
+
+    
+    if args.dataset == 'vqarad':
+        datamodule = VQRadDataModule(args, augmentations= augmentations)
+    elif args.dataset == 'imageclef':
+        
+        datamodule = ImageCLEF2021DataModule(args, augmentations = augmentations)
+
     # Data Loaders
     train_loader = mimic_datamodule.train_dataloader()
     val_loader = mimic_datamodule.val_dataloader()
